@@ -5,6 +5,7 @@ Insert Divesh Rahul Lokhande's data across all recruitment stages
 import sqlite3
 from datetime import datetime
 import json
+import uuid
 
 DB_PATH = "data/recruitment.db"
 
@@ -31,92 +32,112 @@ def insert_divesh_data():
             print(f"✅ Found existing candidate Divesh with ID: {candidate_id}")
         else:
             # Insert Divesh as a candidate
+            candidate_id = str(uuid.uuid4())
             cur.execute("""
-                INSERT INTO candidates (name, email, phone, location, experience_years, skills, source, status, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO candidates (id, name, email, phone, location, experience_years, skills, source, status, created_at, job_id, score)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
+                candidate_id,
                 "Divesh Rahul Lokhande",
                 "diveshlokhande72@gmail.com",
                 "+91-9876543210",
                 "Mumbai, India",
-                3,
+                3.0,
                 json.dumps(["JavaScript", "React", "Node.js", "HTML", "CSS"]),
                 "uploaded",
-                "active",
-                datetime.now().isoformat()
+                "shortlisted",
+                datetime.now().isoformat(),
+                job_id,
+                83.0
             ))
-            candidate_id = cur.lastrowid
             print(f"✅ Created candidate Divesh with ID: {candidate_id}")
         
         # Stage 3: Insert application with screening results
         cur.execute("SELECT id FROM applications WHERE candidate_id = ? AND job_id = ?", (candidate_id, job_id))
-        if not cur.fetchone():
+        app_row = cur.fetchone()
+        if not app_row:
+            app_id = str(uuid.uuid4())
             cur.execute("""
-                INSERT INTO applications (candidate_id, job_id, status, score, rejection_reason, created_at)
+                INSERT INTO applications (id, candidate_id, job_id, status, match_score, applied_at)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (
+                app_id,
                 candidate_id,
                 job_id,
-                "shortlisted",
+                "SHORTLISTED",
                 0.88,
-                None,
                 datetime.now().isoformat()
             ))
-            print("✅ Stage 3: Added screening results - shortlisted with 0.88 score")
+            print("✅ Stage 3: Added screening results - application status: SHORTLISTED")
         else:
+            app_id = app_row[0]
             cur.execute("""
                 UPDATE applications 
-                SET status = 'shortlisted', score = 0.88
+                SET status = 'SHORTLISTED', match_score = 0.88
                 WHERE candidate_id = ? AND job_id = ?
             """, (candidate_id, job_id))
-            print("✅ Stage 3: Updated screening results - shortlisted with 0.88 score")
+            print("✅ Stage 3: Updated screening results - application status: SHORTLISTED")
         
         # Stage 4: Insert outreach communication
         cur.execute("SELECT id FROM communications WHERE candidate_id = ? AND job_id = ?", (candidate_id, job_id))
         if not cur.fetchone():
+            comm_id = str(uuid.uuid4())
             cur.execute("""
-                INSERT INTO communications (candidate_id, job_id, email, outreach_sent, status, actions, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO communications (id, candidate_id, job_id, communication_type, direction, subject, content, sent_at, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
+                comm_id,
                 candidate_id,
                 job_id,
-                "diveshlokhande72@gmail.com",
-                "yes",
-                "sent",
-                "forwarded",
+                "OUTREACH",
+                "OUTBOUND",
+                "Exciting Opportunity",
+                "Outreach email sent with chatbot URL",
+                datetime.now().isoformat(),
                 datetime.now().isoformat()
             ))
-            print("✅ Stage 4: Added outreach communication - sent and forwarded")
-        else:
-            cur.execute("""
-                UPDATE communications 
-                SET email = 'diveshlokhande72@gmail.com', outreach_sent = 'yes', status = 'sent', actions = 'forwarded'
-                WHERE candidate_id = ? AND job_id = ?
-            """, (candidate_id, job_id))
-            print("✅ Stage 4: Updated outreach communication - sent and forwarded")
+            print("✅ Stage 4: Added outreach communication in communications table")
+            
+        cur.execute("""
+            UPDATE applications 
+            SET status = 'OUTREACH_SENT'
+            WHERE candidate_id = ? AND job_id = ?
+        """, (candidate_id, job_id))
+        print("✅ Stage 4: Updated application status to: OUTREACH_SENT")
         
         # Stage 5: Insert prescreening session
-        cur.execute("SELECT id FROM chatbot_sessions WHERE candidate_id = ?", (candidate_id,))
+        cur.execute("SELECT session_id FROM chatbot_sessions WHERE candidate_id = ?", (candidate_id,))
         if not cur.fetchone():
+            session_id = str(uuid.uuid4())
+            token = str(uuid.uuid4())
             cur.execute("""
-                INSERT INTO chatbot_sessions (candidate_id, job_id, session_status, questions_answered, actions, created_at)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO chatbot_sessions (session_id, candidate_id, job_id, token, status, created_at, expires_at, completed_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (
+                session_id,
                 candidate_id,
                 job_id,
-                "done",
-                6,
-                "done",
+                token,
+                "COMPLETED",
+                datetime.now().isoformat(),
+                datetime.now().isoformat(),
                 datetime.now().isoformat()
             ))
-            print("✅ Stage 5: Added prescreening session - 6 questions answered, status done")
+            print("✅ Stage 5: Added prescreening session - status: COMPLETED")
         else:
             cur.execute("""
                 UPDATE chatbot_sessions 
-                SET session_status = 'done', questions_answered = 6, actions = 'done'
+                SET status = 'COMPLETED', completed_at = ?
                 WHERE candidate_id = ?
-            """, (candidate_id,))
-            print("✅ Stage 5: Updated prescreening session - 6 questions answered, status done")
+            """, (datetime.now().isoformat(), candidate_id))
+            print("✅ Stage 5: Updated prescreening session status to: COMPLETED")
+            
+        cur.execute("""
+            UPDATE applications 
+            SET status = 'PRESCREENED'
+            WHERE candidate_id = ? AND job_id = ?
+        """, (candidate_id, job_id))
+        print("✅ Stage 5: Updated application status to: PRESCREENED")
         
         # Stage 6 & 7: Insert interview session
         cur.execute("SELECT id FROM interview_sessions WHERE candidate_id = ?", (candidate_id,))
@@ -125,67 +146,43 @@ def insert_divesh_data():
         if not interview_result:
             cur.execute("""
                 INSERT INTO interview_sessions (
-                    candidate_id, overall_score, content_score, behavior_score, 
-                    phase, total_turns, feedback_summary, turn_reviews, recommendation, created_at
+                    session_id, candidate_id, job_id, phase, total_turns, current_turn, status, interview_status, created_at, started_at, completed_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
+                12345,
                 candidate_id,
-                0.9,
-                0.85,
-                0.95,
+                job_id,
                 "COMPLETE",
                 8,
-                "Excellent candidate with strong technical skills and good communication. Demonstrated solid understanding of web development concepts and showed enthusiasm for the role.",
-                json.dumps([
-                    {"turn": 1, "score": 0.8, "feedback": "Good introduction and background"},
-                    {"turn": 2, "score": 0.9, "feedback": "Strong technical knowledge in JavaScript"},
-                    {"turn": 3, "score": 0.85, "feedback": "Good problem-solving approach"},
-                    {"turn": 4, "score": 0.9, "feedback": "Excellent React knowledge"},
-                    {"turn": 5, "score": 0.95, "feedback": "Great communication skills"},
-                    {"turn": 6, "score": 0.9, "feedback": "Good questions about the role"},
-                    {"turn": 7, "score": 0.85, "feedback": "Solid understanding of best practices"},
-                    {"turn": 8, "score": 0.9, "feedback": "Strong closing and enthusiasm"}
-                ]),
-                "hire",
+                8,
+                "COMPLETED",
+                "completed",
+                datetime.now().isoformat(),
+                datetime.now().isoformat(),
                 datetime.now().isoformat()
             ))
             interview_id = cur.lastrowid
-            print(f"✅ Stage 6 & 7: Added interview results - ID: {interview_id}, overall score: 0.9, recommendation: hire")
+            print(f"✅ Stage 6 & 7: Added interview session - status: COMPLETED")
         else:
             interview_id = interview_result[0]
             cur.execute("""
                 UPDATE interview_sessions 
-                SET overall_score = 0.9, content_score = 0.85, behavior_score = 0.95,
-                    phase = 'COMPLETE', total_turns = 8, 
-                    feedback_summary = 'Excellent candidate with strong technical skills and good communication. Demonstrated solid understanding of web development concepts and showed enthusiasm for the role.',
-                    turn_reviews = ?, recommendation = 'hire'
+                SET phase = 'COMPLETE', total_turns = 8, current_turn = 8, status = 'COMPLETED', interview_status = 'completed', completed_at = ?
                 WHERE candidate_id = ?
-            """, (
-                json.dumps([
-                    {"turn": 1, "score": 0.8, "feedback": "Good introduction and background"},
-                    {"turn": 2, "score": 0.9, "feedback": "Strong technical knowledge in JavaScript"},
-                    {"turn": 3, "score": 0.85, "feedback": "Good problem-solving approach"},
-                    {"turn": 4, "score": 0.9, "feedback": "Excellent React knowledge"},
-                    {"turn": 5, "score": 0.95, "feedback": "Great communication skills"},
-                    {"turn": 6, "score": 0.9, "feedback": "Good questions about the role"},
-                    {"turn": 7, "score": 0.85, "feedback": "Solid understanding of best practices"},
-                    {"turn": 8, "score": 0.9, "feedback": "Strong closing and enthusiasm"}
-                ]),
-                candidate_id
-            ))
-            print(f"✅ Stage 6 & 7: Updated interview results - ID: {interview_id}, overall score: 0.9, recommendation: hire")
+            """, (datetime.now().isoformat(), candidate_id))
+            print(f"✅ Stage 6 & 7: Updated interview session status to: COMPLETED")
+            
+        cur.execute("""
+            UPDATE applications 
+            SET status = 'SELECTED'
+            WHERE candidate_id = ? AND job_id = ?
+        """, (candidate_id, job_id))
+        print("✅ Stage 7: Updated application status to: SELECTED")
         
         # Commit all changes
         conn.commit()
         print("\n🎉 Successfully inserted Divesh Rahul Lokhande's data across all stages!")
-        print(f"📊 Summary:")
-        print(f"   - Candidate ID: {candidate_id}")
-        print(f"   - Job ID: {job_id} (Web Developer)")
-        print(f"   - Stage 3: Shortlisted with 0.88 score")
-        print(f"   - Stage 4: Outreach sent and forwarded")
-        print(f"   - Stage 5: Prescreening completed (6 questions)")
-        print(f"   - Stage 6 & 7: Interview completed with 0.9 score, recommended for hire")
         
     except Exception as e:
         conn.rollback()

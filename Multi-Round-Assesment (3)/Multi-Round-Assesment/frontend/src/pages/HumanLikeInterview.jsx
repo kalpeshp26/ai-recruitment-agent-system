@@ -325,6 +325,62 @@ export default function HumanLikeInterview() {
         navigate(`/interview/report/${interviewId}`);
     };
 
+    const handleEndInterview = async () => {
+        const confirm = window.confirm(
+            'Are you sure you want to end the interview? Your progress will be saved.'
+        );
+        
+        if (!confirm) return;
+
+        try {
+            // Stop any recording
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                mediaRecorderRef.current.stop();
+            }
+
+            // Stop any audio playback
+            if (currentAudioRef.current) {
+                try {
+                    currentAudioRef.current.stop();
+                } catch (e) {
+                    // Already stopped
+                }
+            }
+
+            // Clear timers
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+
+            // Update session status to TERMINATED
+            const sessionId = localStorage.getItem('interviewSessionId');
+            if (sessionId && interviewId) {
+                await fetch(`http://localhost:8000/api/interview/session/${interviewId}/terminate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+            }
+
+            // Clear session and navigate to entry
+            localStorage.removeItem('interviewSessionId');
+            localStorage.removeItem('candidateId');
+            localStorage.removeItem('jobId');
+            localStorage.removeItem('interview_id');
+            
+            setToast({ type: 'success', message: 'Interview ended. Progress saved.' });
+            
+            // Navigate to session entry after short delay
+            setTimeout(() => {
+                navigate('/');
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error ending interview:', error);
+            setToast({ type: 'error', message: 'Error ending interview. Please try again.' });
+        }
+    };
+
     return (
         <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col overflow-hidden">
             {/* Minimal Top Bar */}
@@ -351,7 +407,7 @@ export default function HumanLikeInterview() {
                     ))}
                 </div>
 
-                {/* Phase Badge + Follow-up */}
+                {/* Phase Badge + Follow-up + End Interview */}
                 <div className="flex items-center gap-3">
                     {isFollowup && (
                         <div className="bg-amber-900/50 text-amber-300 border border-amber-700/50 px-3 py-1 rounded-full text-xs font-medium">
@@ -370,6 +426,17 @@ export default function HumanLikeInterview() {
                     }`}>
                         {currentDifficulty}
                     </div>
+                    
+                    {/* End Interview Button */}
+                    {interviewState !== STATES.COMPLETE && (
+                        <button
+                            onClick={handleEndInterview}
+                            className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50 rounded-lg text-sm font-medium transition-all"
+                            title="End interview and save progress"
+                        >
+                            End Interview
+                        </button>
+                    )}
                 </div>
             </div>
 

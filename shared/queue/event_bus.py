@@ -1,5 +1,5 @@
 """
-Event Bus — RabbitMQ for production, in-memory fallback for development.
+Event Bus - RabbitMQ for production, in-memory fallback for development.
 Publishes events to RabbitMQ topic exchange so downstream pipeline consumers
 (screening, outreach, interview) can subscribe to events like profile.parsed.
 """
@@ -19,19 +19,19 @@ except ImportError:
     HAS_AIOPIKA = False
 
 
-# ═══════════════════════════════════════════════════════════
+# ===============================================================
 # In-Memory Event Bus (fallback when RabbitMQ is unavailable)
-# ═══════════════════════════════════════════════════════════
+# ===============================================================
 
 class InMemoryEventBus:
-    """Async in-memory event bus — used when RabbitMQ is not running."""
+    """Async in-memory event bus - used when RabbitMQ is not running."""
 
     def __init__(self):
         self._subscribers: dict[str, list[Callable]] = defaultdict(list)
         self._event_log: list[dict] = []
 
     async def connect(self):
-        print("📡 Using in-memory event bus (RabbitMQ not available)")
+        print("Using in-memory event bus (RabbitMQ not available)")
 
     async def close(self):
         pass
@@ -55,7 +55,7 @@ class InMemoryEventBus:
             "timestamp": datetime.utcnow().isoformat(),
         }
         self._event_log.append(event)
-        print(f"📨 In-Memory [{topic}] from {agent}: {json.dumps(payload, default=str)[:200]}")
+        print(f"In-Memory [{topic}] from {agent}: {json.dumps(payload, default=str)[:200]}")
 
         for handler in self._subscribers.get(topic, []):
             try:
@@ -64,15 +64,15 @@ class InMemoryEventBus:
                 else:
                     handler(payload)
             except Exception as e:
-                print(f"❌ Handler error on {topic}: {e}")
+                print(f"ERROR: Handler error on {topic}: {e}")
 
     def get_log(self, limit: int = 50) -> list[dict]:
         return list(reversed(self._event_log[-limit:]))
 
 
-# ═══════════════════════════════════════════════════════════
-# RabbitMQ Event Bus (production — real message broker)
-# ═══════════════════════════════════════════════════════════
+# ===============================================================
+# RabbitMQ Event Bus (production - real message broker)
+# ===============================================================
 
 class RabbitMQEventBus:
     """
@@ -106,7 +106,7 @@ class RabbitMQEventBus:
                 durable=True,
             )
             self._connected = True
-            print(f"✅ Connected to RabbitMQ at {self._url}")
+            print(f"SUCCESS: Connected to RabbitMQ at {self._url}")
 
             # Bind any handlers that were registered before connection
             for topic, handlers in self._subscribers.items():
@@ -115,7 +115,7 @@ class RabbitMQEventBus:
 
         except Exception as e:
             self._connected = False
-            print(f"⚠️ RabbitMQ connection failed: {e}")
+            print(f"WARNING: RabbitMQ connection failed: {e}")
             print("   Events will be published in-memory and logged locally.")
 
     async def close(self):
@@ -123,7 +123,7 @@ class RabbitMQEventBus:
         if self._connection and not self._connection.is_closed:
             await self._connection.close()
             self._connected = False
-            print("👋 RabbitMQ connection closed")
+            print("RabbitMQ connection closed")
 
     @property
     def is_connected(self) -> bool:
@@ -152,10 +152,10 @@ class RabbitMQEventBus:
                     else:
                         handler(payload)
                 except Exception as e:
-                    print(f"❌ RabbitMQ consumer error on {topic}: {e}")
+                    print(f"ERROR: RabbitMQ consumer error on {topic}: {e}")
 
         await queue.consume(on_message)
-        print(f"   📌 Queue '{queue_name}' bound to '{topic}'")
+        print(f"   Queue '{queue_name}' bound to '{topic}'")
 
     def subscribe(self, topic: str, handler: Callable):
         """Register a handler for a topic. If connected, binds immediately."""
@@ -174,7 +174,7 @@ class RabbitMQEventBus:
         self._event_log.append(event)
 
         if self._connected and self._exchange:
-            # ── Publish to RabbitMQ ──
+            # -- Publish to RabbitMQ --
             message = aio_pika.Message(
                 body=json.dumps(payload, default=str).encode(),
                 content_type="application/json",
@@ -183,10 +183,10 @@ class RabbitMQEventBus:
                 timestamp=datetime.utcnow(),
             )
             await self._exchange.publish(message, routing_key=topic)
-            print(f"📨 RabbitMQ [{topic}] from {agent}: {json.dumps(payload, default=str)[:200]}")
+            print(f"RabbitMQ [{topic}] from {agent}: {json.dumps(payload, default=str)[:200]}")
         else:
-            # ── Fallback: in-memory dispatch ──
-            print(f"📨 Fallback [{topic}] from {agent}: {json.dumps(payload, default=str)[:200]}")
+            # -- Fallback: in-memory dispatch --
+            print(f"Fallback [{topic}] from {agent}: {json.dumps(payload, default=str)[:200]}")
             for handler in self._subscribers.get(topic, []):
                 try:
                     if asyncio.iscoroutinefunction(handler):
@@ -194,25 +194,25 @@ class RabbitMQEventBus:
                     else:
                         handler(payload)
                 except Exception as e:
-                    print(f"❌ Handler error on {topic}: {e}")
+                    print(f"ERROR: Handler error on {topic}: {e}")
 
     def get_log(self, limit: int = 50) -> list[dict]:
         return list(reversed(self._event_log[-limit:]))
 
 
-# ═══════════════════════════════════════════════════════════
+# ===============================================================
 # Factory & Global Singleton
-# ═══════════════════════════════════════════════════════════
+# ===============================================================
 
 def _create_event_bus():
     """Create the appropriate event bus based on available infrastructure."""
     if HAS_AIOPIKA and RABBITMQ_URL:
-        print("🐰 RabbitMQ client available — will connect on startup")
+        print("RabbitMQ client available - will connect on startup")
         return RabbitMQEventBus(RABBITMQ_URL)
     if not HAS_AIOPIKA:
-        print("⚠️ aio-pika not installed — using in-memory event bus")
+        print("WARNING: aio-pika not installed - using in-memory event bus")
     return InMemoryEventBus()
 
 
-# Global singleton — used by all agents
+# Global singleton - used by all agents
 event_bus = _create_event_bus()

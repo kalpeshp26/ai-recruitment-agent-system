@@ -41,7 +41,8 @@ from shared.db.interview import (
     InterviewTurn,
 )
 from shared.db.assessment import AssessmentSession
-from services.resume_service import parse_resume
+# Lazy import to avoid loading ML models at startup
+# from services.resume_service import parse_resume
 from services.groq_service import GroqService
 from interview.schemas.interview_schema import (
     ResumeUploadResponse,
@@ -120,6 +121,8 @@ async def upload_resume(
     content = None
     try:
         content = await file.read()
+        # Lazy import to avoid loading ML models at startup
+        from services.resume_service import parse_resume
         extracted = parse_resume(content)
         pool = groq_service.generate_question_pool(
             extracted["skills"],
@@ -700,6 +703,7 @@ async def submit_response(
         candidate_response=transcript,
         response_time_sec=response_time_sec,
         content_score=content_score,
+        behavior_score=behavior_score,  # Added missing behavior_score
         final_score=final_score,
         intent=intent,
         behavioral_snapshot=snapshot,
@@ -865,124 +869,10 @@ async def synthesize_speech(
 # ENDPOINT 9: GET /interview/session/{interview_id}/report
 # Grouped turns with follow-up rate
 # ═══════════════════════════════════════════════════════════════════════════
-@router.get("/sessions", response_model=list)
-async def list_interview_sessions(
-    db: Session = Depends(get_db),
-    current_user: DummyUser = Depends(get_current_user),
-):
-    """List all interview sessions with basic info."""
-    
-    sessions = db.query(InterviewSession).order_by(InterviewSession.id.desc()).all()
-    
-    result = []
-    for session in sessions:
-        # Get all main turns for this interview
-        main_turns = db.query(InterviewTurn).filter(
-            InterviewTurn.interview_id == session.id,
-            InterviewTurn.is_followup == False,
-        ).all()
-        
-        # Calculate scores
-        if main_turns:
-            content_scores = [t.content_score for t in main_turns if t.content_score is not None]
-            final_scores = [t.final_score for t in main_turns if t.final_score is not None]
-            
-            avg_content = sum(content_scores) / len(content_scores) if content_scores else 0
-            avg_final = sum(final_scores) / len(final_scores) if final_scores else 0
-            
-            # Calculate behavior score
-            behavior_scores = []
-            for t in main_turns:
-                snap = t.behavioral_snapshot or {}
-                ec = snap.get("eye_contact_pct", 0.5)
-                hs = snap.get("head_stability", 0.5)
-                behavior_scores.append(0.5 * ec + 0.5 * hs)
-            avg_behavior = sum(behavior_scores) / len(behavior_scores) if behavior_scores else 0
-            
-            overall_score = avg_final
-        else:
-            avg_content = 0
-            avg_behavior = 0
-            overall_score = 0
-        
-        result.append({
-            "id": session.id,
-            "session_id": session.session_id,
-            "phase": session.phase,
-            "current_turn": session.current_turn,
-            "total_turns": session.total_turns,
-            "overall_score": overall_score,
-            "content_score": avg_content,
-            "behavior_score": avg_behavior,
-            "created_at": session.created_at.isoformat() if session.created_at else None,
-            "completed_at": session.created_at.isoformat() if session.phase == "COMPLETE" else None,
-        })
-    
-    return result
 
+# NOTE: /sessions endpoint moved to interview/interview_api.py to avoid async/sync conflicts
 
-@router.get("/candidate/{candidate_id}/completed", response_model=list)
-async def get_candidate_completed_interviews(
-    candidate_id: int,
-    db: Session = Depends(get_db),
-    current_user: DummyUser = Depends(get_current_user),
-):
-    """Return completed interviews for a candidate with aggregated scores."""
-
-    # Try to query by candidate_id (model may include candidate_id column)
-    try:
-        sessions = db.query(InterviewSession).filter(
-            InterviewSession.candidate_id == candidate_id,
-            InterviewSession.phase == "COMPLETE",
-        ).order_by(InterviewSession.completed_at.desc()).all()
-    except Exception:
-        # Fallback: query completed sessions and filter in Python
-        sessions = db.query(InterviewSession).filter(
-            InterviewSession.phase == "COMPLETE",
-        ).order_by(InterviewSession.completed_at.desc()).all()
-
-    result = []
-    for session in sessions:
-        # If model has candidate_id but it doesn't match, skip
-        if hasattr(session, "candidate_id") and session.candidate_id != candidate_id:
-            continue
-
-        main_turns = db.query(InterviewTurn).filter(
-            InterviewTurn.interview_id == session.id,
-            InterviewTurn.is_followup == False,
-        ).all()
-
-        if main_turns:
-            content_scores = [t.content_score for t in main_turns if t.content_score is not None]
-            final_scores = [t.final_score for t in main_turns if t.final_score is not None]
-            avg_content = sum(content_scores) / len(content_scores) if content_scores else 0
-            avg_final = sum(final_scores) / len(final_scores) if final_scores else 0
-
-            behavior_scores = []
-            for t in main_turns:
-                snap = t.behavioral_snapshot or {}
-                ec = snap.get("eye_contact_pct", 0.5)
-                hs = snap.get("head_stability", 0.5)
-                behavior_scores.append(0.5 * ec + 0.5 * hs)
-            avg_behavior = sum(behavior_scores) / len(behavior_scores) if behavior_scores else 0
-
-            overall_score = avg_final
-        else:
-            avg_content = 0
-            avg_behavior = 0
-            overall_score = 0
-
-        result.append({
-            "interview_id": session.id,
-            "job_id": getattr(session, "job_id", None),
-            "overall_score": overall_score,
-            "content_score": round(avg_content, 3),
-            "behavior_score": round(avg_behavior, 3),
-            "completed_at": session.completed_at.isoformat() if getattr(session, "completed_at", None) else None,
-        })
-
-    return result
-
+# NOTE: /sessions endpoint moved to interview/interview_api.py to avoid async/sync conflicts
 
 @router.get("/session/{interview_id}/report", response_model=InterviewReportResponse)
 async def get_report(

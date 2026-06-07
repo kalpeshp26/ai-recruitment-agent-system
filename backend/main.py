@@ -19,6 +19,7 @@ from prescreening.prescreening_api import router as prescreening_router
 from analytics.routers.analytics_router import router as analytics_router
 from offer.routers.offer_router import router as offer_router
 from onboarding.routers.onboarding_router import router as onboarding_router
+from interview.interview_api import router as interview_api_router
 from backend.middleware.cors import add_cors
 from backend.middleware.request_logging import log_request
 from backend.middleware.rate_limit import rate_limit_middleware
@@ -50,6 +51,7 @@ def create_app() -> FastAPI:
     app.include_router(analytics_router, prefix="/api")
     app.include_router(offer_router, prefix="/api")
     app.include_router(onboarding_router, prefix="/api")
+    app.include_router(interview_api_router, prefix="/api")
 
     # Serve frontend static files via explicit SPA routes below (avoid mounting at '/'
     # which can conflict with programmatic fallback routing in some dev setups).
@@ -111,6 +113,16 @@ def create_app() -> FastAPI:
                 logger.info("Redis reachable")
         except Exception:
             logger.info("Redis not configured or unreachable; continuing")
+        
+        # Start autonomous agents for Stage 8 and 9
+        try:
+            from offer.offer_agent import start_offer_agent
+            from onboarding.onboarding_agent import start_onboarding_agent
+            start_offer_agent()
+            start_onboarding_agent()
+            logger.info("✅ Stage 8 & 9 autonomous agents started")
+        except Exception as e:
+            logger.error(f"Failed to start Stage 8/9 agents: {e}")
 
     return app
 

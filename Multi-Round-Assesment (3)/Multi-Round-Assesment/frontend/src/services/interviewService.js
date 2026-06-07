@@ -7,8 +7,13 @@ export const uploadResume = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
     
+    const sessionId = localStorage.getItem('interviewSessionId');
+    const url = sessionId 
+        ? `/interview/resume/upload?session_id=${encodeURIComponent(sessionId)}`
+        : `/interview/resume/upload`;
+        
     const response = await api.post(
-        `/interview/resume/upload`,
+        url,
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
     );

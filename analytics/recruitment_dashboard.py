@@ -26,19 +26,82 @@ def get_funnel_metrics() -> dict:
             result = cur.fetchone()
             return result[0] if result else 0
 
-        metrics = {
-            "open_roles":           q("SELECT COUNT(*) FROM jobs WHERE status='active'"),
-            "total_applicants":     q("SELECT COUNT(DISTINCT candidate_id) FROM applications"),
-            "shortlisted":          q("SELECT COUNT(*) FROM applications WHERE status IN ('selected','waitlisted')"),
-            "outreach_sent":        q("SELECT COUNT(*) FROM audit_log WHERE event_type='outreach_sent'"),
-            "prescreening_passed":  q("SELECT COUNT(*) FROM audit_log WHERE event_type='prescreening_passed'"),
-            "interviewed":          q("SELECT COUNT(*) FROM interview_sessions"),
-            "selected":             q("SELECT COUNT(*) FROM applications WHERE status='selected'"),
-            "offered":              q("SELECT COUNT(*) FROM offers"),
-            "accepted":             q("SELECT COUNT(*) FROM offers WHERE status='accepted'"),
-            "joined":               q("SELECT COUNT(*) FROM onboarding WHERE status IN ('it_provisioned', 'completed')"),
-        }
+        open_roles = q("SELECT COUNT(*) FROM jobs WHERE status='active'")
+        total_applicants = q("SELECT COUNT(DISTINCT id) FROM candidates")
+        shortlisted = q("SELECT COUNT(DISTINCT candidate_id) FROM applications WHERE UPPER(status) NOT IN ('SOURCED', 'REJECTED')")
+        
+        outreach_sent = q("""
+            SELECT COUNT(DISTINCT c.id)
+            FROM candidates c
+            WHERE c.id IN (SELECT candidate_id FROM communications)
+               OR c.id IN (SELECT candidate_id FROM applications WHERE UPPER(status) NOT IN ('SOURCED', 'REJECTED', 'SHORTLISTED'))
+        """)
+        
+        prescreening_passed = q("""
+            SELECT COUNT(DISTINCT c.id)
+            FROM candidates c
+            WHERE c.id IN (SELECT candidate_id FROM chatbot_sessions WHERE LOWER(status) IN ('completed', 'done', 'pass'))
+               OR c.id IN (SELECT candidate_id FROM applications WHERE UPPER(status) NOT IN ('SOURCED', 'REJECTED', 'SHORTLISTED', 'OUTREACH_SENT'))
+        """)
+        
+        interviewed = q("""
+            SELECT COUNT(DISTINCT c.id)
+            FROM candidates c
+            WHERE c.id IN (SELECT candidate_id FROM interview_sessions)
+               OR c.id IN (SELECT candidate_id FROM interview_evaluations)
+               OR c.id IN (SELECT candidate_id FROM applications WHERE UPPER(status) NOT IN ('SOURCED', 'REJECTED', 'SHORTLISTED', 'OUTREACH_SENT', 'PRESCREENED'))
+        """)
+        
+        selected = q("""
+            SELECT COUNT(DISTINCT c.id)
+            FROM candidates c
+            WHERE c.id IN (SELECT candidate_id FROM interview_sessions WHERE LOWER(status) IN ('complete', 'completed'))
+               OR c.id IN (SELECT candidate_id FROM interview_evaluations WHERE UPPER(recommendation) IN ('STRONG_HIRE', 'HIRE'))
+               OR c.id IN (SELECT candidate_id FROM applications WHERE UPPER(status) NOT IN ('SOURCED', 'REJECTED', 'SHORTLISTED', 'OUTREACH_SENT', 'PRESCREENED', 'INTERVIEW'))
+        """)
+        
+        offered = q("""
+            SELECT COUNT(DISTINCT c.id)
+            FROM offers o
+            JOIN candidates c ON (
+                o.application_id = c.id 
+                OR o.application_id = 'app_' || c.id 
+                OR o.application_id IN (SELECT id FROM applications WHERE candidate_id = c.id)
+            )
+        """)
+        
+        accepted = q("""
+            SELECT COUNT(DISTINCT c.id)
+            FROM offers o
+            JOIN candidates c ON (
+                o.application_id = c.id 
+                OR o.application_id = 'app_' || c.id 
+                OR o.application_id IN (SELECT id FROM applications WHERE candidate_id = c.id)
+            )
+            WHERE LOWER(o.status) = 'accepted'
+        """)
+        
+        joined = q("""
+            SELECT COUNT(DISTINCT o.candidate_id)
+            FROM onboarding o
+            JOIN candidates c ON o.candidate_id = c.id
+            WHERE LOWER(o.status) IN ('it_provisioned', 'completed', 'joined')
+        """)
+        
         conn.close()
+        
+        metrics = {
+            "open_roles":           open_roles,
+            "total_applicants":     total_applicants,
+            "shortlisted":          shortlisted,
+            "outreach_sent":        outreach_sent,
+            "prescreening_passed":  prescreening_passed,
+            "interviewed":          interviewed,
+            "selected":             selected,
+            "offered":              offered,
+            "accepted":             accepted,
+            "joined":               joined,
+        }
     except sqlite3.OperationalError:
         metrics = {
             "open_roles": 0,
@@ -68,10 +131,16 @@ def get_funnel_dropoff(metrics: dict) -> list:
         ("Joined",               metrics['joined']),
     ]
     result = []
+    prev_count = None
     for i, (stage, count) in enumerate(stages):
-        prev = stages[i - 1][1] if i > 0 else count
+        if prev_count is not None:
+            count = min(count, prev_count)
+            
+        prev = prev_count if prev_count is not None else count
         dropoff = round((1 - count / prev) * 100, 1) if prev > 0 and i > 0 else 0
+        
         result.append({"stage": stage, "count": count, "dropoff_pct": dropoff})
+        prev_count = count
     return result
 
 

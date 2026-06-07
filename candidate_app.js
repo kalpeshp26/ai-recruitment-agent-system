@@ -165,6 +165,58 @@ async function apiRequest(url, options = {}, base = API_BASE) {
     return payload;
 }
 
+function escapeHTML(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function renderCandidateCards(items) {
+    const container = $('candidates-list');
+    if (!container) {
+        return;
+    }
+    const rows = (Array.isArray(items) ? items : []).map((candidate) => {
+        const skills = Array.isArray(candidate.skills)
+            ? candidate.skills.join(', ')
+            : String(candidate.skills || '').trim();
+        const status = String(candidate.status || 'new').toLowerCase();
+        return `
+            <div class="card">
+                <div class="job-card-header">
+                    <div class="job-card-title-block">
+                        <h3>${escapeHTML(candidate.name || candidate.candidate_name || candidate.id || 'Candidate')}</h3>
+                        <div class="job-card-subtitle">${escapeHTML(candidate.current_role || candidate.location || candidate.source || 'Candidate intake record')}</div>
+                    </div>
+                    <span class="status-tag ${escapeHTML(status)}">${escapeHTML(status)}</span>
+                </div>
+                <div style="margin-top: 0.75rem; display: grid; gap: 0.35rem;">
+                    <div><strong>Email:</strong> ${escapeHTML(candidate.email || 'n/a')}</div>
+                    <div><strong>Phone:</strong> ${escapeHTML(candidate.phone || 'n/a')}</div>
+                    <div><strong>Experience:</strong> ${escapeHTML(candidate.experience_years ?? 'n/a')}</div>
+                    <div><strong>Skills:</strong> ${escapeHTML(skills || 'n/a')}</div>
+                    <div><strong>Source:</strong> ${escapeHTML(candidate.source || 'manual_entry')}</div>
+                    <div><strong>Created:</strong> ${escapeHTML(candidate.created_at || 'n/a')}</div>
+                </div>
+            </div>`;
+    });
+    container.innerHTML = rows.length
+        ? rows.join('')
+        : '<div class="empty-state">No candidates yet. Upload a resume or enter candidate details.</div>';
+}
+
+function setSelectOptions(selectId, options, placeholder = '-- Select a job --') {
+    const select = $(selectId);
+    if (!select) {
+        return;
+    }
+    const items = Array.isArray(options) ? options : [];
+    select.innerHTML = [`<option value="">${placeholder}</option>`, ...items.map((item) => `<option value="${escapeHTML(item.value)}">${escapeHTML(item.label)}</option>`)].join('');
+}
+
 function renderKeyValueList(items) {
     return items
         .map(([label, value]) => `<div><strong>${label}:</strong> ${String(value ?? '')}</div>`)
@@ -447,8 +499,14 @@ async function loadOverviewData() {
 }
 
 async function loadJobs() {
-    state.jobs = state.jobs.length ? state.jobs : [{ id: 'demo-job', title: 'Demo Engineer Role' }];
-    loadJobsForSelect();
+    try {
+        const response = await apiRequest('/intake/jobs', { method: 'GET' }, API_BASE);
+        state.jobs = Array.isArray(response) ? response : response.jobs || [];
+    } catch (error) {
+        state.jobs = [];
+        setStatus(`Jobs refresh failed: ${error.message}`, 'error');
+    }
+    await loadJobsForSelect();
 }
 
 async function loadJobsForSelect() {
@@ -456,12 +514,23 @@ async function loadJobsForSelect() {
     if (!select) {
         return;
     }
-    const jobs = state.jobs.length ? state.jobs : [{ id: 'demo-job', title: 'Demo Engineer Role' }];
-    select.innerHTML = jobs.map((job) => `<option value="${job.id}">${job.title || job.name || job.id}</option>`).join('');
+    const jobs = state.jobs.length ? state.jobs : [];
+    setSelectOptions('candidate-job-select', jobs.map((job) => ({
+        value: job.id,
+        label: job.title || job.name || job.id,
+    })), '-- Select a job --');
 }
 
 async function loadCandidates() {
-    state.candidates = state.candidates.length ? state.candidates : [];
+    try {
+        const response = await apiRequest('/sourcing/candidates', { method: 'GET' }, API_BASE);
+        state.candidates = Array.isArray(response) ? response : [];
+    } catch (error) {
+        state.candidates = [];
+        setStatus(`Candidates refresh failed: ${error.message}`, 'error');
+    }
+    renderCandidateCards(state.candidates);
+    return state.candidates;
 }
 
 async function loadScreeningData() { return null; }
@@ -479,16 +548,23 @@ async function createJob(event) {
     if (event && typeof event.preventDefault === 'function') {
         event.preventDefault();
     }
-    const title = $('job-title')?.value?.trim() || 'Untitled Job';
-    state.jobs.unshift({ id: `job-${Date.now()}`, title });
-    await loadJobsForSelect();
-    const result = $('job-form-result');
-    if (result) {
-        result.classList.remove('hidden');
-        const content = $('job-form-content');
-        if (content) {
-            content.textContent = `Created local demo job: ${title}`;
-        }
+    const title = $('job-title')?.value?.trim() || '';
+    if (!title) {
+        setStatus('Please enter a job title before adding.', 'warning');
+        return null;
+    }
+    try {
+        setStatus('Saving job...', 'info');
+        const response = await apiRequest('/intake/jobs', {
+            method: 'POST',
+            body: JSON.stringify({ title }),
+        }, API_BASE);
+        setStatus(response.message || 'Job saved', 'success');
+        await loadJobs();
+        return response;
+    } catch (error) {
+        setStatus(`Job save failed: ${error.message}`, 'error');
+        throw error;
     }
 }
 
@@ -496,15 +572,54 @@ async function addCandidateForm(event) {
     if (event && typeof event.preventDefault === 'function') {
         event.preventDefault();
     }
-    const name = $('candidate-name')?.value?.trim() || 'Candidate';
-    state.candidates.unshift({ name });
-    const result = $('candidate-form-result');
-    if (result) {
-        result.classList.remove('hidden');
-        const content = $('candidate-form-content');
-        if (content) {
-            content.textContent = `Created local demo candidate: ${name}`;
+    const candidateName = $('candidate-name')?.value?.trim() || '';
+    const candidateEmail = $('candidate-email')?.value?.trim() || '';
+    const candidatePhone = $('candidate-phone')?.value?.trim() || '';
+    const candidateLocation = $('candidate-location')?.value?.trim() || '';
+    const candidateRole = $('candidate-role')?.value?.trim() || '';
+    const experienceYears = Number.parseFloat($('candidate-experience')?.value || '0');
+    const candidateEducation = $('candidate-education')?.value || '';
+    const candidateSkills = ($('candidate-skills')?.value || '')
+        .split(',')
+        .map((skill) => skill.trim())
+        .filter(Boolean);
+    const sourceProfileUrl = $('candidate-linkedin')?.value?.trim() || '';
+    const jobId = $('candidate-job-select')?.value || '';
+
+    if (!candidateName || !candidateEmail || !candidatePhone || !jobId) {
+        setStatus('Please fill the required candidate fields before adding.', 'warning');
+        return null;
+    }
+
+    try {
+        setStatus('Saving candidate...', 'info');
+        const response = await apiRequest('/sourcing/add-candidate', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: candidateName,
+                email: candidateEmail,
+                phone: candidatePhone,
+                location: candidateLocation,
+                current_role: candidateRole,
+                experience_years: Number.isFinite(experienceYears) ? experienceYears : 0,
+                skills: candidateSkills,
+                education: candidateEducation || null,
+                source_profile_url: sourceProfileUrl || null,
+                job_id: jobId,
+            }),
+        }, API_BASE);
+
+        const form = $('candidate-form');
+        if (form && typeof form.reset === 'function') {
+            form.reset();
         }
+        await loadCandidates();
+        await loadJobsForSelect();
+        setStatus(response.message || 'Candidate saved', 'success');
+        return response;
+    } catch (error) {
+        setStatus(`Candidate add failed: ${error.message}`, 'error');
+        throw error;
     }
 }
 

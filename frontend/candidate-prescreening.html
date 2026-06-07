@@ -42,6 +42,7 @@
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
+            position: relative;
         }
 
         .header {
@@ -49,28 +50,47 @@
             color: white;
             padding: 40px;
             text-align: center;
+            position: relative;
+            z-index: 1;
         }
 
         .header h1 {
             font-size: 28px;
             margin-bottom: 8px;
+            font-weight: 700;
         }
 
         .header p {
             opacity: 0.9;
             font-size: 16px;
+            margin: 0;
         }
 
         .content {
             padding: 40px;
+            background: var(--surface);
+            position: relative;
+            z-index: 2;
         }
 
         .welcome-screen, .question-screen, .complete-screen, .error-screen {
             display: none;
+            animation: fadeIn 0.3s ease-in;
         }
 
         .welcome-screen.active, .question-screen.active, .complete-screen.active, .error-screen.active {
             display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .info-box {
@@ -81,12 +101,30 @@
             margin-bottom: 24px;
             display: flex;
             gap: 12px;
-            align-items: start;
+            align-items: flex-start;
         }
 
         .info-box svg {
             flex-shrink: 0;
             color: #0284c7;
+            margin-top: 2px;
+        }
+
+        .info-box div {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .info-box strong {
+            display: block;
+            margin: 0 0 6px 0;
+            font-weight: 600;
+        }
+
+        .info-box p {
+            margin: 0;
+            line-height: 1.5;
+            color: var(--text);
         }
 
         .progress-bar {
@@ -245,11 +283,21 @@
         }
 
         .candidate-info p {
-            margin: 4px 0;
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .candidate-info p:first-child {
+            margin-top: 0;
+        }
+
+        .candidate-info p:last-child {
+            margin-bottom: 0;
         }
 
         .candidate-info strong {
             color: var(--text);
+            font-weight: 600;
         }
     </style>
 </head>
@@ -269,7 +317,7 @@
                     </svg>
                     <div>
                         <strong>Welcome to the Prescreening Interview!</strong>
-                        <p style="margin-top: 4px;">This automated interview will help us understand your qualifications better. Please answer all questions honestly and thoroughly.</p>
+                        <p>This automated interview will help us understand your qualifications better. Please answer all questions honestly and thoroughly.</p>
                     </div>
                 </div>
 
@@ -282,6 +330,11 @@
 
                 <button class="btn btn-primary" onclick="startInterview()" style="width: 100%;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    Start Interview
+                </button>
+            </div>
                         <polygon points="5 3 19 12 5 21 5 3"/>
                     </svg>
                     Start Interview
@@ -331,7 +384,7 @@
                     </svg>
                 </div>
                 <div class="text-center">
-                    <h2>Interview Complete! 🎉</h2>
+                    <h2>Interview Complete! </h2>
                     <p class="text-muted">Thank you for completing the prescreening interview.</p>
                     <p style="margin-top: 16px;">Your responses have been submitted successfully. Our team will review your answers and get back to you soon.</p>
                     <p style="margin-top: 24px; padding: 16px; background: var(--bg); border-radius: 8px;">

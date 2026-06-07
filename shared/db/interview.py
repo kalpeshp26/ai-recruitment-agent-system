@@ -27,11 +27,15 @@ class InterviewSession(Base):
 
     id: int = Column(Integer, primary_key=True, index=True)
     session_id: int = Column(Integer, nullable=False, index=True)  # Removed FK constraint
+    candidate_id: str = Column(String(255), nullable=True)  # Added missing candidate_id
+    job_id: str = Column(String(255), nullable=True)  # Added missing job_id
     phase: str = Column(String(20), server_default="HR", nullable=False)
     current_turn: int = Column(Integer, server_default="0", nullable=False)
     total_turns: int = Column(Integer, server_default="10", nullable=False)
+    status: str = Column(String(20), server_default="in_progress", nullable=False)  # Added missing status
     rl_state: dict = Column(JSON, nullable=True)  # Removed default for SQLite compatibility
     created_at: datetime = Column(DateTime(timezone=False), server_default=func.now(), nullable=True)
+    completed_at: Optional[datetime] = Column(DateTime(timezone=False), nullable=True)  # Added missing completed_at
 
     # ── Relationships ─────────────────────────────────────────────────
     turns = relationship(
@@ -83,6 +87,7 @@ class InterviewTurn(Base):
     candidate_response: Optional[str] = Column(Text, nullable=True)
     response_time_sec: Optional[float] = Column(Float, nullable=True)
     content_score: Optional[float] = Column(Float, nullable=True)
+    behavior_score: Optional[float] = Column(Float, nullable=True)  # Added missing behavior_score
     final_score: Optional[float] = Column(Float, nullable=True)
     intent: Optional[str] = Column(String(10), nullable=True)
     behavioral_snapshot: dict = Column(JSON, nullable=True)  # Removed default for SQLite

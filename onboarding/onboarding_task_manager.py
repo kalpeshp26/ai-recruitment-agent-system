@@ -1,6 +1,7 @@
 """
 onboarding_task_manager.py — Netra | Stage 9
 Creates Day 1, Week 1, Month 1 task checklists in SQLite.
+Uses Grok AI to generate personalized tasks based on job details.
 Sends emails via smtplib (free). No paid services.
 """
 
@@ -14,7 +15,8 @@ from config import DATABASE_URL, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD
 # Extract DB path from DATABASE_URL
 DB_PATH = DATABASE_URL.replace("sqlite+aiosqlite:///", "")
 
-TASK_CHECKLISTS = {
+# Default fallback tasks (used when AI generation fails)
+DEFAULT_TASK_CHECKLISTS = {
     "day_1": [
         "Collect laptop and access card from IT",
         "Set up company email and change password",
@@ -38,20 +40,52 @@ TASK_CHECKLISTS = {
 }
 
 
-def create_task_checklist(onboarding_id: int, candidate_id: int, joining_date: str) -> int:
+def create_task_checklist(onboarding_id: int, candidate_id: int, joining_date: str, offer_id: str = None, job_id: str = None) -> int:
+    import uuid
     joining = datetime.strptime(joining_date, "%Y-%m-%d")
     offsets = {"day_1": 0, "week_1": 7, "month_1": 30}
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
+    
+    # Get offer_id from onboarding record if not provided
+    if not offer_id:
+        cur.execute("SELECT offer_id FROM onboarding WHERE id=?", (onboarding_id,))
+        row = cur.fetchone()
+        offer_id = row[0] if row else f"offer_unknown_{onboarding_id}"
+    
+    # Generate AI-based tasks if job_id is provided
+    if job_id:
+        try:
+            from onboarding.grok_task_generator import generate_onboarding_tasks, get_job_details_from_db
+            job_details = get_job_details_from_db(job_id)
+            if job_details:
+                task_checklists = generate_onboarding_tasks(
+                    job_details.get("title", ""),
+                    job_details.get("description", ""),
+                    job_details.get("department", ""),
+                    job_details.get("skills", [])
+                )
+                print(f"[onboarding_task_manager] Generated AI tasks for job {job_id}")
+            else:
+                task_checklists = DEFAULT_TASK_CHECKLISTS
+                print(f"[onboarding_task_manager] Using default tasks (job not found)")
+        except Exception as e:
+            print(f"[onboarding_task_manager] AI task generation failed: {e}, using defaults")
+            task_checklists = DEFAULT_TASK_CHECKLISTS
+    else:
+        task_checklists = DEFAULT_TASK_CHECKLISTS
+        print(f"[onboarding_task_manager] Using default tasks (no job_id provided)")
+    
     total = 0
-    for phase, tasks in TASK_CHECKLISTS.items():
+    for phase, tasks in task_checklists.items():
         due = (joining + timedelta(days=offsets[phase])).strftime("%Y-%m-%d")
         for task in tasks:
+            task_id = f"task_{uuid.uuid4().hex[:8]}"
             cur.execute("""
                 INSERT INTO onboarding_tasks
-                    (onboarding_id, candidate_id, phase, task, due_date, status)
-                VALUES (?,?,?,?,?,'pending')
-            """, (onboarding_id, candidate_id, phase, task, due))
+                    (id, onboarding_id, candidate_id, offer_id, phase, task_name, due_date, status, created_at)
+                VALUES (?,?,?,?,?,?,?,?,datetime('now'))
+            """, (task_id, onboarding_id, candidate_id, offer_id, phase, task, due, 'pending'))
             total += 1
     conn.commit()
     conn.close()
@@ -59,13 +93,17 @@ def create_task_checklist(onboarding_id: int, candidate_id: int, joining_date: s
     return total
 
 
-def send_task_checklist_email(candidate_email: str, candidate_name: str, joining_date: str):
+def send_task_checklist_email(candidate_email: str, candidate_name: str, joining_date: str, task_checklists: dict = None):
+    """Send task checklist email with provided tasks or defaults."""
+    if task_checklists is None:
+        task_checklists = DEFAULT_TASK_CHECKLISTS
+    
     lines = []
-    for phase, tasks in TASK_CHECKLISTS.items():
+    for phase, tasks in task_checklists.items():
         lines.append(f"\n{phase.replace('_',' ').upper()}:")
         for t in tasks:
             lines.append(f"  - {t}")
-    body = f"Dear {candidate_name},\n\nWelcome! Here's your onboarding checklist:\n" + \
+    body = f"Dear {candidate_name},\n\nWelcome! Here's your personalized onboarding checklist:\n" + \
            "\n".join(lines) + "\n\nBest regards,\nHR Team"
     msg = MIMEText(body, 'plain')
     msg['From'] = SMTP_USER
@@ -117,7 +155,7 @@ def get_pending_tasks(onboarding_id: int) -> list:
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("""
-        SELECT id, task, phase, due_date FROM onboarding_tasks
+        SELECT id, task_name, phase, due_date FROM onboarding_tasks
         WHERE onboarding_id=? AND status='pending' ORDER BY due_date
     """, (onboarding_id,))
     rows = cur.fetchall()

@@ -112,23 +112,11 @@
                     </svg>
                     <span class="nav-label">Interview & Evaluation</span>
                 </button>
-                <button class="tab-btn" data-tab="stage8">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                    <span class="nav-label">Offer Management</span>
-                </button>
                 <button class="tab-btn" data-tab="stage9">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                     </svg>
                     <span class="nav-label">Onboarding</span>
-                </button>
-                <button class="tab-btn" data-tab="stage10">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>
-                    </svg>
-                    <span class="nav-label">Analytics</span>
                 </button>
             </div>
         </nav>
@@ -137,7 +125,7 @@
 
         <!-- Overview Tab -->
         <section class="tab-content active" id="tab-overview">
-            <div class="stats-grid">
+            <!-- <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon blue">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
@@ -184,211 +172,46 @@
                         <span class="stat-label">Events</span>
                     </div>
                 </div>
+            </div> -->
+
+            <!-- Analytics -->
+            <h2 class="section-title">Recruitment Analytics</h2>
+
+            <!-- Funnel Metrics -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Recruitment Funnel</h2>
+                    <button class="btn btn-ghost btn-sm" onclick="loadAnalyticsDashboard()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+                <div id="funnel-metrics" class="cards-list">
+                    <div class="empty-state">Loading funnel metrics...</div>
+                </div>
             </div>
 
-            <!-- Recruitment Pipeline Visualization -->
-            <h2 class="section-title">Complete Recruitment Pipeline (10 Steps)</h2>
-            <div class="pipeline">
-                <!-- Stage 1: Job Intake -->
-                <div class="pipeline-stage">
-                    <div class="pipeline-node stage1">
-                        <span class="pipeline-num">1</span>
-                        <span class="pipeline-label">Job Requisition</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage1">
-                        <span class="pipeline-num">2</span>
-                        <span class="pipeline-label">JD Generation</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage1">
-                        <span class="pipeline-num">3</span>
-                        <span class="pipeline-label">Job Posting</span>
-                    </div>
+            <!-- Export Options -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Export Reports</h2>
                 </div>
-                <div class="pipeline-divider">
-                    <span>1: Job Intake</span>
-                    <span class="pipeline-connector">⬇</span>
-                    <span>2: Candidate Intake</span>
-                </div>
-                
-                <!-- Stage 2: Candidate Intake -->
-                <div class="pipeline-stage">
-                    <div class="pipeline-node stage2">
-                        <span class="pipeline-num">4</span>
-                        <span class="pipeline-label">Resume Upload</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage2">
-                        <span class="pipeline-num">5</span>
-                        <span class="pipeline-label">Profile Parsing</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage2">
-                        <span class="pipeline-num">6</span>
-                        <span class="pipeline-label">Candidate Entry</span>
-                    </div>
-                </div>
-                <div class="pipeline-divider">
-                    <span>2: Candidate Intake</span>
-                    <span class="pipeline-connector">⬇</span>
-                    <span>3: Screening</span>
-                </div>
-                
-                <!-- Stage 3: Screening -->
-                <div class="pipeline-stage">
-                    <div class="pipeline-node stage3">
-                        <span class="pipeline-num">7</span>
-                        <span class="pipeline-label">Duplicate Detection</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage3">
-                        <span class="pipeline-num">8</span>
-                        <span class="pipeline-label">Candidate Scoring</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage3">
-                        <span class="pipeline-num">9</span>
-                        <span class="pipeline-label">Shortlisting</span>
-                    </div>
-                </div>
-                <div class="pipeline-divider">
-                    <span>3: Screening</span>
-                    <span class="pipeline-connector">⬇</span>
-                    <span>4: Outreach</span>
-                </div>
-                
-                <!-- Stage 4: Outreach -->
-                <div class="pipeline-stage">
-                    <div class="pipeline-node stage4">
-                        <span class="pipeline-num">10</span>
-                        <span class="pipeline-label">Email Outreach</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage4">
-                        <span class="pipeline-num">11</span>
-                        <span class="pipeline-label">Follow-ups</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage4">
-                        <span class="pipeline-num">12</span>
-                        <span class="pipeline-label">Response Tracking</span>
-                    </div>
-                </div>
-                <div class="pipeline-divider">
-                    <span>4: Outreach</span>
-                    <span class="pipeline-connector">⬇</span>
-                    <span>5: Prescreening</span>
-                </div>
-                
-                <!-- Stage 5: Prescreening -->
-                <div class="pipeline-stage">
-                    <div class="pipeline-node stage5">
-                        <span class="pipeline-num">13</span>
-                        <span class="pipeline-label">Chatbot Session</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage5">
-                        <span class="pipeline-num">14</span>
-                        <span class="pipeline-label">Answer Evaluation</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage5">
-                        <span class="pipeline-num">15</span>
-                        <span class="pipeline-label">BGV Check</span>
-                    </div>
-                </div>
-                <div class="pipeline-divider">
-                    <span>5: Prescreening</span>
-                    <span class="pipeline-connector">⬇</span>
-                    <span>6 & 7: Interview</span>
-                </div>
-                
-                <!-- Stage 6 & 7: Interview & Evaluation -->
-                <div class="pipeline-stage">
-                    <div class="pipeline-node stage6">
-                        <span class="pipeline-num">16</span>
-                        <span class="pipeline-label">AI Interview</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage6">
-                        <span class="pipeline-num">17</span>
-                        <span class="pipeline-label">Answer Assessment</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage6">
-                        <span class="pipeline-num">18</span>
-                        <span class="pipeline-label">Scoring & Report</span>
-                    </div>
-                </div>
-                <div class="pipeline-divider">
-                    <span>6 & 7: Interview</span>
-                    <span class="pipeline-connector">⬇</span>
-                    <span>8: Offer</span>
-                </div>
-                
-                <!-- Stage 8: Offer Management -->
-                <div class="pipeline-stage">
-                    <div class="pipeline-node stage8">
-                        <span class="pipeline-num">19</span>
-                        <span class="pipeline-label">Offer Generation</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage8">
-                        <span class="pipeline-num">20</span>
-                        <span class="pipeline-label">Offer Dispatch</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage8">
-                        <span class="pipeline-num">21</span>
-                        <span class="pipeline-label">Negotiation</span>
-                    </div>
-                </div>
-                <div class="pipeline-divider">
-                    <span>8: Offer</span>
-                    <span class="pipeline-connector">⬇</span>
-                    <span>9: Onboarding</span>
-                </div>
-                
-                <!-- Stage 9: Onboarding -->
-                <div class="pipeline-stage">
-                    <div class="pipeline-node stage9">
-                        <span class="pipeline-num">22</span>
-                        <span class="pipeline-label">Task Management</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage9">
-                        <span class="pipeline-num">23</span>
-                        <span class="pipeline-label">Document Collection</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage9">
-                        <span class="pipeline-num">24</span>
-                        <span class="pipeline-label">IT Provisioning</span>
-                    </div>
-                </div>
-                <div class="pipeline-divider">
-                    <span>9: Onboarding</span>
-                    <span class="pipeline-connector">⬇</span>
-                    <span>10: Analytics</span>
-                </div>
-                
-                <!-- Stage 10: Analytics -->
-                <div class="pipeline-stage">
-                    <div class="pipeline-node stage10">
-                        <span class="pipeline-num">25</span>
-                        <span class="pipeline-label">Funnel Metrics</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage10">
-                        <span class="pipeline-num">26</span>
-                        <span class="pipeline-label">Time-to-Hire</span>
-                    </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage10">
-                        <span class="pipeline-num">27</span>
-                        <span class="pipeline-label">Forecasting</span>
-                    </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-primary" onclick="exportAnalyticsCSV()" style="flex: 1;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Export CSV
+                    </button>
+                    <button class="btn btn-primary" onclick="exportAnalyticsPDF()" style="flex: 1;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Export PDF
+                    </button>
                 </div>
             </div>
         </section>
@@ -737,7 +560,7 @@
             </div>
 
             <!-- Screening Flow Visual -->
-            <div class="panel">
+            <!-- <div class="panel">
                 <div class="panel-header">
                     <h2>Screening Pipeline</h2>
                     <span class="agent-badge">Screening Engine</span>
@@ -768,7 +591,7 @@
                         <span>Shortlist Generated</span>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Screening Controls -->
             <div class="panel">
@@ -880,7 +703,7 @@
             <div class="stage-header">
                 <div>
                     <h2>AI Prescreening</h2>
-                    <p>Chatbot screening and background verification</p>
+                    <p>AI-powered candidate assessment and automated session generation.</p>
                 </div>
                 <div class="stage-stats">
                     <div class="stat-mini">
@@ -902,7 +725,7 @@
                 </div>
             </div>
 
-            <!-- Enhanced Stats Grid -->
+            <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon blue">
@@ -940,7 +763,7 @@
                 <div class="stat-card">
                     <div class="stat-icon orange">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -950,110 +773,73 @@
                 </div>
             </div>
 
-            <!-- Prescreening Info -->
+            <!-- Main Prescreening Panel -->
             <div class="panel">
                 <div class="panel-header">
-                    <h3>AI Chatbot Prescreening</h3>
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn btn-secondary" onclick="togglePrescreeningView('admin')" id="btn-admin-view">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                            </svg>
-                            Admin View
-                        </button>
-                        <button class="btn btn-primary" onclick="togglePrescreeningView('candidate')" id="btn-candidate-view">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                            </svg>
-                            Candidate View (Demo)
-                        </button>
-                        <button class="btn btn-primary" onclick="createPrescreeningSession()" id="btn-create-session">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                            Create Session
+                    <h2>AI Prescreening Interview</h2>
+                    <span class="agent-badge">AI Powered</span>
+                </div>
+
+                <!-- Candidate Selection -->
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="prescreening-candidate-select" style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; display: block;">Select Candidate</label>
+                    <p style="opacity: 0.65; font-size: 0.9rem; margin-bottom: 0.75rem;">Choose a candidate to begin their prescreening. Our AI will generate 6 tailored questions specific to their applied job role.</p>
+                    <select id="prescreening-candidate-select" class="form-control" onchange="onPrescreeningCandidateChange()" style="font-size: 1rem; padding: 0.75rem 1rem;">
+                        <option value="">-- Select a Candidate --</option>
+                    </select>
+                </div>
+
+                <!-- Loading State -->
+                <div id="prescreening-loading" style="display: none; text-align: center; padding: 2rem;">
+                    <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem;"></div>
+                    <p id="prescreening-loading-text" style="opacity: 0.7;">Generating personalised questions...</p>
+                </div>
+
+                <!-- Questions Form -->
+                <div id="candidate-demo-container" style="display: none;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 24px; border-radius: 10px; margin-bottom: 1.5rem; color: white;">
+                        <h3 id="prescreening-job-title-header" style="margin: 0 0 6px 0; font-size: 1.1rem;">🤖 AI Prescreening Interview</h3>
+                        <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Answer all questions honestly and thoroughly. Minimum 20 characters per answer.</p>
+                    </div>
+                    <div id="demo-questions-container"></div>
+                </div>
+
+                <!-- Result View -->
+                <div id="prescreening-success-container" style="display: none; margin-top: 1rem;">
+                    <div style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(5,150,105,0.1) 100%); border: 1px solid rgba(16,185,129,0.4); border-radius: 12px; padding: 2rem; text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 0.75rem;">✅</div>
+                        <h3 style="margin: 0 0 0.5rem 0; color: #10b981; font-size: 1.3rem;">Prescreening Submitted!</h3>
+                        <p id="prescreening-verdict-msg" style="font-size: 1.05rem; margin: 0.5rem 0 1.5rem 0; opacity: 0.9;"></p>
+
+                        <div id="prescreening-pass-details" style="display: none; background: rgba(102,126,234,0.12); border: 1px solid rgba(102,126,234,0.35); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; text-align: left;">
+                            <p style="margin: 0 0 0.5rem 0; font-weight: 600; font-size: 0.95rem; color: #818cf8;">🎯 Interview Session Created</p>
+                            <p style="margin: 0 0 0.75rem 0; opacity: 0.8; font-size: 0.88rem;">The candidate passed! Share the session ID below — they enter it in the interview app to start their interview.</p>
+                            <div style="display: flex; align-items: center; gap: 0.75rem; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.75rem 1rem;">
+                                <span style="opacity: 0.7; font-size: 0.85rem; white-space: nowrap;">Session ID:</span>
+                                <code id="prescreening-session-id-display" style="font-size: 1rem; font-weight: 700; color: #a5b4fc; flex: 1; word-break: break-all;"></code>
+                                <button onclick="navigator.clipboard.writeText(document.getElementById('prescreening-session-id-display').textContent); showToast('Session ID copied!', 'success')"
+                                    class="btn btn-ghost btn-sm" title="Copy Session ID" style="padding: 0.3rem 0.6rem; flex-shrink: 0;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <p style="margin: 0.75rem 0 0 0; opacity: 0.65; font-size: 0.82rem;">💡 Candidate opens the interview app at <code style="opacity:0.9;">http://localhost:5173</code> and enters this session ID to begin.</p>
+                        </div>
+
+                        <button class="btn btn-primary" onclick="resetPrescreeningForm()" style="padding: 0.75rem 2rem;">
+                            Start Another Prescreening
                         </button>
                     </div>
                 </div>
-                
-                <!-- Admin View -->
-                <div class="panel-body" id="prescreening-admin-view">
-                    <div class="info-box info">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-                        </svg>
-                        <div>
-                            <strong>Automated Prescreening:</strong> Candidates receive a unique chatbot link with 6 prescreening questions. Answers are evaluated automatically using Claude AI, and background verification is initiated for passing candidates.
-                        </div>
-                    </div>
-                    
-                    <!-- Job Filter -->
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="prescreening-job-filter">Filter by Job</label>
-                        <select id="prescreening-job-filter" class="form-control" onchange="filterPrescreeningSessions()">
-                            <option value="">-- All Jobs --</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Status Filter -->
-                    <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="prescreening-status-filter">Filter by Status</label>
-                        <select id="prescreening-status-filter" class="form-control" onchange="filterPrescreeningSessions()">
-                            <option value="">-- All Statuses --</option>
-                            <option value="PENDING">Pending</option>
-                            <option value="IN_PROGRESS">In Progress</option>
-                            <option value="COMPLETED">Completed</option>
-                            <option value="EXPIRED">Expired</option>
-                        </select>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="loadPrescreeningData()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                        </svg>
-                        Refresh Prescreening Data
-                    </button>
-                </div>
 
-                <!-- Candidate View (Demo) -->
-                <div class="panel-body" id="prescreening-candidate-view" style="display: none;">
-                    <div class="info-box success">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-                        </svg>
-                        <div>
-                            <strong>Demo Mode:</strong> This shows what candidates see when they click the prescreening link. The 6 questions below are what every candidate must answer.
-                        </div>
-                    </div>
-
-                    <!-- Candidate Prescreening Interface -->
-                    <div id="candidate-demo-container">
-                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; border-radius: 12px; margin: 20px 0; color: white;">
-                            <h3 style="margin: 0 0 8px 0;">🤖 AI Prescreening Interview</h3>
-                            <p style="margin: 0; opacity: 0.9;">Complete these 6 questions to proceed with your application</p>
-                        </div>
-
-                        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                            <p><strong>Instructions:</strong></p>
-                            <p style="margin: 8px 0;">• Answer all 6 questions honestly and thoroughly</p>
-                            <p style="margin: 8px 0;">• Minimum 20 characters per answer</p>
-                            <p style="margin: 8px 0;">• Estimated time: 10-15 minutes</p>
-                            <p style="margin: 8px 0;">• Your answers will be evaluated by AI</p>
-                        </div>
-
-                        <div id="demo-questions-container">
-                            <!-- Questions will be loaded here -->
-                        </div>
-
-                        <div style="margin-top: 24px; padding: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px;">
-                            <strong style="color: #10b981;">✓ What Happens After Submission</strong>
-                            <p style="margin: 8px 0 0 0; opacity: 0.8;">
-                                1. AI evaluates your answers automatically using Claude AI<br>
-                                2. Background verification is initiated for qualified candidates<br>
-                                3. You'll receive an email with next steps within 2-3 business days
-                            </p>
-                        </div>
+                <!-- Info Footer -->
+                <div class="info-box" style="margin-top: 1.25rem;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                    <div>
+                        <strong>How it works:</strong> Select a candidate → AI generates 6 job-specific questions → Candidate answers → AI evaluates and scores → If passed, an interview session ID is created for the multi-round assessment app.
                     </div>
                 </div>
             </div>
@@ -1124,8 +910,8 @@
         <!-- Stage 6 & 7: Interview & Evaluation Tab -->
         <section class="tab-content" id="tab-stage6">
             <div class="stage-header">
-                <h1>AI Interview & Evaluation</h1>
-                <p class="stage-subtitle">Conduct interviews and evaluate candidates with AI-powered insights</p>
+                <h1>Interview & Evaluation</h1>
+                <p class="stage-subtitle">Record interview results and generate evaluation reports</p>
             </div>
 
             <!-- Stats Overview -->
@@ -1137,8 +923,8 @@
                         </svg>
                     </div>
                     <div class="stat-info">
-                        <span class="stat-value" id="stat-total-interviews">0</span>
-                        <span class="stat-label">Total Interviews</span>
+                        <span class="stat-value" id="stat-total-evaluations">0</span>
+                        <span class="stat-label">Total Evaluations</span>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -1148,8 +934,8 @@
                         </svg>
                     </div>
                     <div class="stat-info">
-                        <span class="stat-value" id="stat-completed-interviews">0</span>
-                        <span class="stat-label">Completed</span>
+                        <span class="stat-value" id="stat-passed-interviews">0</span>
+                        <span class="stat-label">Passed</span>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -1159,129 +945,120 @@
                         </svg>
                     </div>
                     <div class="stat-info">
-                        <span class="stat-value" id="stat-avg-score">0.0</span>
+                        <span class="stat-value" id="stat-eval-avg-score">0.0</span>
                         <span class="stat-label">Avg Score</span>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon orange">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
                         </svg>
                     </div>
                     <div class="stat-info">
-                        <span class="stat-value" id="stat-in-progress">0</span>
-                        <span class="stat-label">In Progress</span>
+                        <span class="stat-value" id="stat-failed-interviews">0</span>
+                        <span class="stat-label">Failed</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Candidate Interview Access -->
+            <!-- Interview Data Entry Form -->
             <div class="panel">
                 <div class="panel-header">
-                    <h2>Candidate Interview Interface</h2>
-                    <span class="agent-badge">AI Interview System</span>
+                    <h2>Submit Interview Results</h2>
+                    <span class="agent-badge">Manual Entry</span>
                 </div>
-                <div class="info-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-color: #667eea; color: white;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-                    </svg>
-                    <div>
-                        <strong style="font-size: 1.1em;">Take the Interview as a Candidate</strong><br>
-                        <span style="opacity: 0.95; margin-top: 0.25rem; display: block;">Experience the AI-powered interview with real-time speech recognition, adaptive difficulty, and behavioral analysis</span>
+                <p style="opacity: 0.7; margin-bottom: 1.5rem;">Select the generated interview session and enter the round output scores</p>
+                
+                <form id="interview-data-form" onsubmit="submitInterviewData(event)">
+                    <div class="form-group">
+                        <label for="interview-session-select">Candidate Session ID *</label>
+                        <select id="interview-session-select" required>
+                            <option value="">-- Select generated session --</option>
+                        </select>
+                        <small class="form-help">This session is generated automatically when prescreening is passed</small>
                     </div>
-                </div>
-                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <a href="/candidate/interview" class="btn btn-primary" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 1rem; font-size: 1.05em;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                            <polyline points="15 3 21 3 21 9"/>
-                            <line x1="10" y1="14" x2="21" y2="3"/>
-                        </svg>
-                        Take Interview
-                    </a>
-                </div>
-                <div class="info-box" style="margin-top: 1rem;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-                    </svg>
-                    <div>
-                        <strong>Interview Flow:</strong> Login → Upload Resume → Start Interview → Complete 10 Questions → View Report<br>
-                        <span style="opacity: 0.7; font-size: 0.9em;">The interview interface runs in the multi-round assessment app and opens directly from this dashboard.</span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Live Interview Runner -->
-            <div class="panel">
-                <div class="panel-header">
-                    <h2>Live Interview Runner</h2>
-                    <span class="agent-badge">Backend Connected</span>
-                </div>
-                <form id="live-interview-form" onsubmit="startLiveInterview(event)">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="live-role">Role</label>
-                            <input type="text" id="live-role" value="engineer" placeholder="e.g. engineer">
+                            <label for="interview-candidate-name">Candidate</label>
+                            <input type="text" id="interview-candidate-name" readonly placeholder="Selected from session">
                         </div>
                         <div class="form-group">
-                            <label for="live-answer-mode">Answer Mode</label>
-                            <select id="live-answer-mode">
-                                <option value="text">Text</option>
-                                <option value="voice">Voice</option>
+                            <label for="interview-candidate-email">Email</label>
+                            <input type="text" id="interview-candidate-email" readonly placeholder="Selected from session">
+                        </div>
+                        <div class="form-group">
+                            <label for="interview-job-title">Job</label>
+                            <input type="text" id="interview-job-title" readonly placeholder="Selected from session">
+                        </div>
+                        <div class="form-group">
+                            <label for="interview-phase">Round *</label>
+                            <select id="interview-phase" required>
+                                <option value="HR">HR</option>
+                                <option value="TECHNICAL">Technical</option>
+                                <option value="FINAL">Final</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div class="form-grid">
                         <div class="form-group">
-                            <label for="live-language">Preferred Language</label>
-                            <input type="text" id="live-language" value="en" placeholder="en">
+                            <label for="interview-date">Interview Date</label>
+                            <input type="date" id="interview-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="interview-recommendation">Recommendation</label>
+                            <select id="interview-recommendation">
+                                <option value="">Auto from final score</option>
+                                <option value="STRONG_HIRE">Strong Hire</option>
+                                <option value="HIRE">Hire</option>
+                                <option value="HOLD">Hold</option>
+                                <option value="REJECT">Reject</option>
+                            </select>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-top: 1rem;">
-                        <button class="btn btn-primary" id="btn-start-live-interview" type="submit">Start Interview</button>
-                        <button class="btn btn-secondary" type="button">Next Question</button>
-                        <button class="btn btn-ghost" type="button">End Session</button>
-                        <span id="live-interview-status" class="status-tag info">Idle</span>
-                        <span class="text-muted">Session: <strong id="live-session-id">none</strong></span>
-                        <span class="text-muted">State: <strong id="live-session-status">none</strong></span>
-                        <span class="text-muted">Progress: <strong id="live-progress">waiting</strong></span>
-                        <span class="text-muted">Question: <strong id="live-question-count">0 / 10</strong></span>
-                        <span id="live-max-questions" class="hidden">10</span>
+
+                    <h4 style="margin: 1.5rem 0 1rem 0; font-size: 1rem; opacity: 0.9;">Round Output Scores (0.0-1.0)</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="interview-content-score">Content Score</label>
+                            <input type="number" id="interview-content-score" min="0" max="1" step="0.01" placeholder="0.75">
+                        </div>
+                        <div class="form-group">
+                            <label for="interview-behavior-score">Behavior Score</label>
+                            <input type="number" id="interview-behavior-score" min="0" max="1" step="0.01" placeholder="0.75">
+                        </div>
+                        <div class="form-group">
+                            <label for="interview-final-score">Final Score *</label>
+                            <input type="number" id="interview-final-score" min="0" max="1" step="0.01" placeholder="0.75" required>
+                        </div>
                     </div>
+
+                    <button type="submit" class="btn btn-primary" id="btn-submit-interview">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                            <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
+                        </svg>
+                        Submit & Generate Evaluation
+                    </button>
                 </form>
-
-                <div id="live-question-panel" class="result-panel hidden" style="margin-top: 1.5rem;">
-                    <h3>Current Question</h3>
-                    <div id="live-question-meta" class="text-muted" style="margin-bottom: 0.5rem;"></div>
-                    <div id="live-question-text" style="font-size: 1.05rem; font-weight: 600; margin-bottom: 1rem;"></div>
-                    <div class="form-group">
-                        <label for="live-answer-text">Your Answer</label>
-                        <textarea id="live-answer-text" rows="6" placeholder="Type the candidate answer here..."></textarea>
-                    </div>
-                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                        <button class="btn btn-primary" id="btn-submit-live-answer" type="button">Submit Answer</button>
-                        <button class="btn btn-secondary" type="button">Skip to Next Question</button>
-                    </div>
-                    <div style="display:flex; gap:0.5rem; margin-top:0.75rem; align-items:center;">
-                        <button class="btn btn-ghost" id="btn-start-record" type="button">Start Recording</button>
-                        <button class="btn btn-ghost" id="btn-stop-record" type="button">Stop Recording</button>
-                        <button class="btn btn-ghost" id="btn-play-record" type="button">Play Recording</button>
-                        <button class="btn btn-ghost" id="btn-transcribe-record" type="button">Transcribe</button>
-                        <span id="recording-status" class="text-muted" style="margin-left: 0.5rem;">No recording</span>
-                    </div>
-                    <div id="live-answer-feedback" style="margin-top: 1rem;"></div>
-                </div>
-
-                <div id="live-result-panel" class="result-panel hidden" style="margin-top: 1rem;">
-                    <h3>Final Interview Result</h3>
-                    <div id="live-result-content"></div>
-                </div>
             </div>
 
-            <!-- Interview Results & Scorecards -->
+            <div class="panel hidden" id="evaluation-detail-panel">
+                <div class="panel-header">
+                    <h2>Evaluation Report</h2>
+                    <button class="btn btn-ghost btn-sm" onclick="closeEvaluationDetails()">
+                        Close
+                    </button>
+                </div>
+                <div id="evaluation-detail-content"></div>
+            </div>
+
+            <!-- Evaluation Results -->
             <div class="panel">
                 <div class="panel-header">
-                    <h2>Interview Results & Scorecards</h2>
-                    <button class="btn btn-ghost btn-sm" type="button">
+                    <h2>Evaluation Results</h2>
+                    <button class="btn btn-ghost btn-sm" onclick="loadEvaluationResults()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                             <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
                             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
@@ -1289,153 +1066,26 @@
                         Refresh
                     </button>
                 </div>
-                <div id="interview-results-list" class="cards-list">
+                <div id="evaluation-results-list" class="cards-list">
                     <div class="empty-state">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48" style="opacity: 0.3; margin-bottom: 1rem;">
-                            <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
                         </svg>
-                        <p>No completed interviews yet</p>
-                        <span style="opacity: 0.7; font-size: 0.9em;">Interview results will appear here after candidates complete their sessions</span>
+                        <p>No evaluation results yet</p>
+                        <span style="opacity: 0.7; font-size: 0.9em;">Submit interview data above to generate evaluation reports</span>
                     </div>
-                </div>
-            </div>
-
-            <!-- Pipeline Integration -->
-            <div class="panel">
-                <div class="panel-header">
-                    <h2>Pipeline Integration</h2>
-                    <span class="agent-badge">Ready</span>
-                </div>
-                <div class="info-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                        <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                    </svg>
-                    <div>
-                        <strong>Automated Pipeline Flow:</strong><br>
-                        <span style="opacity: 0.8;">Interview results are automatically processed and made available for offer generation and beyond</span>
-                    </div>
-                </div>
-                <div style="margin-top: 1.5rem; padding: 1.5rem; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border: 1px solid rgba(102, 126, 234, 0.2);">
-                    <h3 style="margin: 0 0 1rem 0; font-size: 1em; color: #667eea;">Output Data Structure</h3>
-                    <div style="font-family: 'Courier New', monospace; font-size: 0.9em; line-height: 1.6; opacity: 0.9;">
-                        <div style="color: #666;">// Available for downstream stages:</div>
-                        <div>{</div>
-                        <div style="padding-left: 1rem;">
-                            <span style="color: #667eea;">interview_id</span>: <span style="color: #e83e8c;">number</span>,<br>
-                            <span style="color: #667eea;">candidate_id</span>: <span style="color: #e83e8c;">number</span>,<br>
-                            <span style="color: #667eea;">overall_score</span>: <span style="color: #e83e8c;">float</span>, <span style="color: #999;">// 0-1 scale</span><br>
-                            <span style="color: #667eea;">content_score</span>: <span style="color: #e83e8c;">float</span>,<br>
-                            <span style="color: #667eea;">behavior_score</span>: <span style="color: #e83e8c;">float</span>,<br>
-                            <span style="color: #667eea;">phase</span>: <span style="color: #28a745;">"COMPLETE"</span>,<br>
-                            <span style="color: #667eea;">total_turns</span>: <span style="color: #e83e8c;">number</span>,<br>
-                            <span style="color: #667eea;">feedback_summary</span>: <span style="color: #e83e8c;">string</span>,<br>
-                            <span style="color: #667eea;">turn_reviews</span>: <span style="color: #e83e8c;">array</span>,<br>
-                            <span style="color: #667eea;">recommendation</span>: <span style="color: #e83e8c;">string</span> <span style="color: #999;">// "hire" | "maybe" | "reject"</span>
-                        </div>
-                        <div>}</div>
-                    </div>
-                </div>
-                <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-                    <button class="btn btn-ghost" type="button" style="flex: 1;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Export Interview Data (JSON)
-                    </button>
-                    <button class="btn btn-ghost" type="button" style="flex: 1;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
-                        </svg>
-                        View API Endpoints
-                    </button>
                 </div>
             </div>
         </section>
 
-        <!-- Stage 8: Offer Management Tab -->
-        <section class="tab-content" id="tab-stage8">
-            <div class="stage-header">
-                <h1>Offer Management</h1>
-                <p class="stage-subtitle">Generate, dispatch, and negotiate job offers</p>
-            </div>
 
-            <!-- Stats Overview -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon blue">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                        </svg>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="stat-total-offers">0</span>
-                        <span class="stat-label">Total Offers</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon green">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="stat-accepted-offers">0</span>
-                        <span class="stat-label">Accepted</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon orange">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="stat-pending-offers">0</span>
-                        <span class="stat-label">Pending</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon purple">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        </svg>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="stat-negotiations">0</span>
-                        <span class="stat-label">Negotiations</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Offers List -->
-            <div class="panel">
-                <div class="panel-header">
-                    <h2>Offer Letters</h2>
-                    <button class="btn btn-ghost btn-sm" onclick="loadOffers()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                        </svg>
-                        Refresh
-                    </button>
-                </div>
-                <div id="offers-list" class="cards-list">
-                    <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48" style="opacity: 0.3; margin-bottom: 1rem;">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                        </svg>
-                        <p>No offers generated yet</p>
-                        <span style="opacity: 0.7; font-size: 0.9em;">Offers will appear here after interview completion</span>
-                    </div>
-                </div>
-            </div>
-        </section>
 
         <!-- Stage 9: Onboarding Tab -->
         <section class="tab-content" id="tab-stage9">
             <div class="stage-header">
                 <h1>Onboarding</h1>
-                <p class="stage-subtitle">Manage new hire onboarding, documents, and IT provisioning</p>
+                <p class="stage-subtitle">AI-powered onboarding with personalized task generation</p>
             </div>
 
             <!-- Stats Overview -->
@@ -1486,6 +1136,59 @@
                 </div>
             </div>
 
+            <!-- Onboarding Actions -->
+            <div class="panel" style="margin-bottom: 1rem;">
+                <div class="panel-header">
+                    <h2>Actions</h2>
+                </div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary btn-sm" onclick="loadCompletedCandidates()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                        Refresh Candidates
+                    </button>
+                </div>
+            </div>
+
+            <!-- Candidate Selection -->
+            <div class="panel" style="margin-bottom: 1rem;">
+                <div class="panel-header">
+                    <h2>Select Candidate</h2>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Select Candidate (Completed Interview/Evaluation)</label>
+                        <select id="candidate-select" onchange="onCandidateSelected()" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--bg-secondary);">
+                            <option value="">-- Choose a Candidate --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Joining Date</label>
+                        <input type="date" id="joining-date" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--bg-secondary);">
+                    </div>
+                    <button class="btn btn-primary" onclick="generateTasksForCandidate()">
+                        Generate Tasks & Create Onboarding
+                    </button>
+                </div>
+            </div>
+
+            <!-- Generated Tasks Display -->
+            <div class="panel" style="margin-bottom: 1rem;" id="tasks-panel" style="display: none;">
+                <div class="panel-header">
+                    <h2>Generated Tasks</h2>
+                    <button class="btn btn-ghost btn-sm" onclick="closeTasksPanel()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="tasks-display" style="padding: 1rem;">
+                    <!-- Tasks will be loaded here -->
+                </div>
+            </div>
+
             <!-- Onboarding List -->
             <div class="panel">
                 <div class="panel-header">
@@ -1504,57 +1207,30 @@
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                         </svg>
                         <p>No onboarding records yet</p>
-                        <span style="opacity: 0.7; font-size: 0.9em;">Onboarding starts after offer acceptance</span>
+                        <span style="opacity: 0.7; font-size: 0.9em;">Create onboarding from interview results to get started</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onboarding Tasks Modal -->
+            <div id="onboarding-tasks-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modal-title">Onboarding Tasks</h3>
+                        <button class="btn btn-ghost btn-sm" onclick="closeOnboardingModal()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="modal-body">
+                        <!-- Tasks will be loaded here -->
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Stage 10: Analytics Tab -->
-        <section class="tab-content" id="tab-stage10">
-            <div class="stage-header">
-                <h1>Recruitment Analytics</h1>
-                <p class="stage-subtitle">Track metrics, forecast hiring needs, and optimize recruitment ROI</p>
-            </div>
 
-            <!-- Funnel Metrics -->
-            <div class="panel">
-                <div class="panel-header">
-                    <h2>Recruitment Funnel</h2>
-                    <button class="btn btn-ghost btn-sm" onclick="loadAnalyticsDashboard()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                        </svg>
-                        Refresh
-                    </button>
-                </div>
-                <div id="funnel-metrics" class="cards-list">
-                    <div class="empty-state">Loading funnel metrics...</div>
-                </div>
-            </div>
-
-            <!-- Export Options -->
-            <div class="panel">
-                <div class="panel-header">
-                    <h2>Export Reports</h2>
-                </div>
-                <div style="display: flex; gap: 1rem;">
-                    <button class="btn btn-primary" onclick="exportAnalyticsCSV()" style="flex: 1;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Export CSV
-                    </button>
-                    <button class="btn btn-primary" onclick="exportAnalyticsPDF()" style="flex: 1;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Export PDF
-                    </button>
-                </div>
-            </div>
-        </section>
 
         <!-- Remove old Stage 7 tab -->
             </div>

@@ -39,8 +39,8 @@ async def process_onboarding_started_event(event_data: dict):
         onboarding_id = create_onboarding_record(candidate_id, offer_id)
         print(f"[Onboarding Agent] Created onboarding record {onboarding_id}")
         
-        # Step 2: Create task checklist
-        task_count = create_task_checklist(onboarding_id, candidate_id, joining_date)
+        # Step 2: Create task checklist with AI-generated tasks
+        task_count = create_task_checklist(onboarding_id, candidate_id, joining_date, offer_id, job_id)
         print(f"[Onboarding Agent] Created {task_count} tasks for candidate {candidate_id}")
         
         # Step 3: Send task checklist email
@@ -100,12 +100,12 @@ async def process_onboarding_started_event(event_data: dict):
                 agent="onboarding_agent"
             )
             
-            print(f"[Onboarding Agent] ✅ Onboarding completed for candidate {candidate_id}")
+            print(f"[Onboarding Agent] [SUCCESS] Onboarding completed for candidate {candidate_id}")
         else:
-            print(f"[Onboarding Agent] ⚠️ BGV not cleared. IT provisioning pending.")
+            print(f"[Onboarding Agent] [WARNING] BGV not cleared. IT provisioning pending.")
         
     except Exception as e:
-        print(f"[Onboarding Agent] ❌ Error processing onboarding: {e}")
+        print(f"[Onboarding Agent] [ERROR] Error processing onboarding: {e}")
         import traceback
         traceback.print_exc()
 
@@ -113,4 +113,4 @@ async def process_onboarding_started_event(event_data: dict):
 def start_onboarding_agent():
     """Subscribe to events and start the onboarding agent"""
     event_bus.subscribe(EventTopics.ONBOARDING_STARTED, process_onboarding_started_event)
-    print("✅ Onboarding Agent (Stage 9) is now listening for events")
+    print("[SUCCESS] Onboarding Agent (Stage 9) is now listening for events")

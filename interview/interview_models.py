@@ -49,6 +49,7 @@ class InterviewTurn(Base):
     candidate_response = Column(Text)
     response_time_sec = Column(Float)
     content_score = Column(Float)
+    behavior_score = Column(Float)  # Added missing behavior_score column
     final_score = Column(Float)
     intent = Column(String)  # POSITIVE, NEUTRAL, NEGATIVE
     behavioral_snapshot = Column(JSON, default=dict)

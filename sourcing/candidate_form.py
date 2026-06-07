@@ -6,11 +6,11 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.db.database import get_db, generate_id
-from shared.db.models import Candidate, Application, AuditLog
+from shared.db.models import Candidate, Application, AuditLog, ChatbotAnswer, ChatbotSession, Communication, Interview, Offer, Onboarding, OnboardingTask, Score
 from shared.queue.event_bus import event_bus
 from shared.queue.event_topics import EventTopics
 from shared.auth.jwt_middleware import get_current_user
@@ -216,6 +216,58 @@ async def add_candidate_with_resume(
         "application_id": application_id,
         "status": "parsed",
         "message": "Candidate added successfully. Upload resume separately to complete profile.",
+    }
+
+
+@router.delete("/candidates/{candidate_id}")
+async def delete_candidate_form(
+    candidate_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: dict = Depends(get_current_user),
+):
+    """Delete a candidate and all linked downstream records."""
+    result = await db.execute(select(Candidate).where(Candidate.id == candidate_id))
+    candidate = result.scalar_one_or_none()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    app_result = await db.execute(select(Application).where(Application.candidate_id == candidate_id))
+    applications = app_result.scalars().all()
+    application_ids = [application.id for application in applications]
+
+    session_result = await db.execute(select(ChatbotSession.session_id).where(ChatbotSession.candidate_id == candidate_id))
+    chatbot_session_ids = [row[0] for row in session_result.all()]
+
+    if chatbot_session_ids:
+        await db.execute(delete(ChatbotAnswer).where(ChatbotAnswer.session_id.in_(chatbot_session_ids)))
+        await db.execute(delete(ChatbotSession).where(ChatbotSession.session_id.in_(chatbot_session_ids)))
+
+    if application_ids:
+        onboarding_result = await db.execute(select(Onboarding.id, Onboarding.offer_id).where(Onboarding.candidate_id == candidate_id))
+        onboarding_rows = onboarding_result.all()
+        onboarding_ids = [row[0] for row in onboarding_rows]
+        offer_ids = [row[1] for row in onboarding_rows if row[1]]
+
+        if onboarding_ids:
+            await db.execute(delete(OnboardingTask).where(OnboardingTask.onboarding_id.in_(onboarding_ids)))
+            await db.execute(delete(Onboarding).where(Onboarding.id.in_(onboarding_ids)))
+
+        if offer_ids:
+            await db.execute(delete(Offer).where(Offer.id.in_(offer_ids)))
+
+        await db.execute(delete(Interview).where(Interview.application_id.in_(application_ids)))
+        await db.execute(delete(Score).where(Score.candidate_id == candidate_id))
+        await db.execute(delete(Communication).where(Communication.candidate_id == candidate_id))
+        await db.execute(delete(Application).where(Application.id.in_(application_ids)))
+
+    await db.execute(delete(AuditLog).where(AuditLog.entity_type == "candidate", AuditLog.entity_id == candidate_id))
+    await db.delete(candidate)
+    await db.commit()
+
+    return {
+        "success": True,
+        "candidate_id": candidate_id,
+        "message": "Candidate deleted successfully.",
     }
 
 

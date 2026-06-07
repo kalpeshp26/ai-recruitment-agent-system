@@ -52,10 +52,10 @@ async def process_pipeline_event(event_data: dict, event_type: str):
             EventTopics.OFFER_EXTENDED,
             EventTopics.ONBOARDING_COMPLETED
         ]:
-            print(f"[Analytics Agent] 📊 Logged: {event_type} - {event_data.get('candidate_id', 'N/A')}")
+            print(f"[Analytics Agent] [INFO] Logged: {event_type} - {event_data.get('candidate_id', 'N/A')}")
         
     except Exception as e:
-        print(f"[Analytics Agent] ❌ Error logging event: {e}")
+        print(f"[Analytics Agent] [ERROR] Error logging event: {e}")
 
 
 async def process_onboarding_completed_event(event_data: dict):
@@ -68,7 +68,7 @@ async def process_onboarding_completed_event(event_data: dict):
         job_id = event_data.get("job_id")
         
         print(f"[Analytics Agent] Candidate {candidate_id} completed onboarding!")
-        print(f"[Analytics Agent] 🎉 Full pipeline completed for candidate {candidate_id}")
+        print(f"[Analytics Agent] [SUCCESS] Full pipeline completed for candidate {candidate_id}")
         
         # Calculate time-to-hire
         from config import DATABASE_URL
@@ -100,7 +100,7 @@ async def process_onboarding_completed_event(event_data: dict):
             end_date = datetime.fromisoformat(end_row[0])
             time_to_hire = (end_date - start_date).days
             
-            print(f"[Analytics Agent] ⏱️ Time-to-hire for candidate {candidate_id}: {time_to_hire} days")
+            print(f"[Analytics Agent] [INFO] Time-to-hire for candidate {candidate_id}: {time_to_hire} days")
         
         conn.close()
         
@@ -117,7 +117,7 @@ async def process_onboarding_completed_event(event_data: dict):
         )
         
     except Exception as e:
-        print(f"[Analytics Agent] ❌ Error processing completion: {e}")
+        print(f"[Analytics Agent] [ERROR] Error processing completion: {e}")
 
 
 def start_analytics_agent():
@@ -132,4 +132,4 @@ def start_analytics_agent():
     event_bus.subscribe(EventTopics.ONBOARDING_STARTED, lambda data: process_pipeline_event(data, EventTopics.ONBOARDING_STARTED))
     event_bus.subscribe(EventTopics.ONBOARDING_COMPLETED, process_onboarding_completed_event)
     
-    print("✅ Analytics Agent (Stage 10) is now listening for all pipeline events")
+    print("[SUCCESS] Analytics Agent (Stage 10) is now listening for all pipeline events")

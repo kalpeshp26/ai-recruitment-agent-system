@@ -1,17 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import PrivateRoute from './components/PrivateRoute';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import Instructions from './pages/Instructions';
-import AptitudeTest from './pages/AptitudeTest';
-import ResultPage from './pages/ResultPage';
+import SessionRoute from './components/SessionRoute';
+import SessionEntry from './pages/SessionEntry';
 import ResumeUpload from './pages/ResumeUpload';
 import HumanLikeInterview from './pages/HumanLikeInterview';
 import InterviewReport from './pages/InterviewReport';
-import LandingPage from './pages/LandingPage';
-import Analytics from './pages/Analytics';
 import AdminLogin from './pages/AdminLogin';
 import AdminAnalyticsDashboard from './pages/AdminAnalyticsDashboard';
 import AdminCandidateReports from './pages/AdminCandidateReports';
@@ -25,9 +17,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* Main entry point - Session ID required */}
+        <Route path="/" element={<SessionEntry />} />
+        <Route path="/session" element={<SessionEntry />} />
+        
+        {/* Direct session link for Launch Interview button */}
+        <Route path="/interview/session/:sessionId" element={<SessionEntry />} />
+        
+        {/* Admin routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route 
           path="/admin/dashboard" 
@@ -69,81 +66,35 @@ export default function App() {
             </AdminRoute>
           } 
         />
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <PrivateRoute>
-              <Profile />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/analytics"
-          element={
-            <PrivateRoute>
-              <Analytics />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/instructions"
-          element={
-            <PrivateRoute>
-              <Instructions />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/aptitude"
-          element={
-            <PrivateRoute>
-              <ErrorBoundary>
-                <AptitudeTest />
-              </ErrorBoundary>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/result"
-          element={
-            <PrivateRoute>
-              <ResultPage />
-            </PrivateRoute>
-          }
-        />
+        
+        {/* Interview flow - Session protected */}
         <Route
           path="/resume-upload"
           element={
-            <PrivateRoute>
+            <SessionRoute>
               <ResumeUpload />
-            </PrivateRoute>
+            </SessionRoute>
           }
         />
         <Route
           path="/interview"
           element={
-            <PrivateRoute>
+            <SessionRoute>
               <HumanLikeInterview />
-            </PrivateRoute>
+            </SessionRoute>
           }
         />
         <Route
           path="/interview/report/:interviewId"
           element={
-            <PrivateRoute>
+            <SessionRoute>
               <InterviewReport />
-            </PrivateRoute>
+            </SessionRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        
+        {/* Fallback to session entry */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

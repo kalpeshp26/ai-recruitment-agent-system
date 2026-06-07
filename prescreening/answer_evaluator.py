@@ -3,9 +3,11 @@ prescreening/answer_evaluator.py
 ════════════════════════════════════════════════════════════════════
 Stage 5 — AI Answer Evaluation ⭐ Core AI File
 Fetches all Q&A pairs for a completed chatbot session, sends each to
-Claude API for scoring, computes an overall verdict (PASS/BORDERLINE/FAIL),
+Groq LLM for scoring, computes an overall verdict (PASS/BORDERLINE/FAIL),
 stores the evaluation report in the scores table, and fires the appropriate
-RabbitMQ event to trigger Divesh's interview module.
+RabbitMQ event to trigger the interview module.
+
+Uses Groq (llama-3.3-70b-versatile) for AI evaluation.
 """
 
 import json
@@ -14,20 +16,20 @@ import os
 import time
 from datetime import datetime, timezone
 
-import anthropic
 import pika
 from dotenv import load_dotenv
+from groq import Groq
 
 from shared.db.database import db_session
 from shared.db.models import Application, ChatbotAnswer, ChatbotSession, Score
-from shared.queue.event_topics import SCREENING_FAILED, SCREENING_PASSED
+from shared.queue.event_topics import EventTopics
 
 # ─── Env ────────────────────────────────────────────────────────────────────
 load_dotenv()
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+GROQ_API_KEY      = os.getenv("GROQ_API_KEY", "")
 RABBITMQ_URL      = os.getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/")
-MODEL             = "claude-sonnet-4-5"
+GROQ_MODEL        = "llama-3.3-70b-versatile"
 
 MAX_RETRIES       = 3
 BASE_BACKOFF      = 2        # seconds
@@ -39,27 +41,27 @@ logging.basicConfig(
 )
 log = logging.getLogger("answer_evaluator")
 
-# ─── Anthropic client (lazy — created on first use) ─────────────────────────
-_claude = None
+# ─── Groq client (lazy — created on first use) ─────────────────────────────
+_groq = None
 
-def _get_claude():
-    """Return a cached Anthropic client, creating it on first call."""
-    global _claude
-    if _claude is None:
-        _claude = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-    return _claude
+def _get_groq():
+    """Return a cached Groq client, creating it on first call."""
+    global _groq
+    if _groq is None:
+        _groq = Groq(api_key=GROQ_API_KEY)
+    return _groq
 
 # Score mapping
 SCORE_MAP = {"Excellent": 4, "Good": 3, "Average": 2, "Poor": 1}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# CLAUDE EVALUATION
+# GROQ LLM EVALUATION
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _evaluate_single_answer(question: str, answer: str) -> dict:
     """
-    Send one Q&A pair to Claude for evaluation.
+    Send one Q&A pair to Groq LLM for evaluation.
     Returns dict: {score, disqualified, reason}
     Implements exponential-backoff retry on rate-limit errors.
     """
@@ -76,35 +78,43 @@ def _evaluate_single_answer(question: str, answer: str) -> dict:
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            response = _get_claude().messages.create(
-                model=MODEL,
+            response = _get_groq().chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=0.3,
                 max_tokens=256,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_message}],
             )
-            text = response.content[0].text.strip()
+            text = response.choices[0].message.content.strip()
+            
             # Strip markdown code fences if present
             if text.startswith("```"):
                 text = text.split("```")[1]
                 if text.startswith("json"):
                     text = text[4:]
+            
             result = json.loads(text.strip())
-            # Normalise field names
+            
+            # Normalize field names
             return {
                 "score":        result.get("score", "Average"),
                 "disqualified": bool(result.get("disqualified", False)),
                 "reason":       result.get("reason", ""),
             }
-        except anthropic.RateLimitError:
-            wait = BASE_BACKOFF ** attempt
-            log.warning("Claude rate limit hit (attempt %d/%d). Waiting %ds.", attempt, MAX_RETRIES, wait)
-            time.sleep(wait)
-        except json.JSONDecodeError as exc:
-            log.error("JSON parse error from Claude response: %s", exc)
-            return {"score": "Average", "disqualified": False, "reason": "Parse error"}
         except Exception as exc:
-            log.error("Claude API error on attempt %d: %s", attempt, exc)
-            time.sleep(BASE_BACKOFF ** attempt)
+            # Check if it's a rate limit error
+            if "rate_limit" in str(exc).lower() or "429" in str(exc):
+                wait = BASE_BACKOFF ** attempt
+                log.warning("Groq rate limit hit (attempt %d/%d). Waiting %ds.", attempt, MAX_RETRIES, wait)
+                time.sleep(wait)
+            elif "json" in str(exc).lower():
+                log.error("JSON parse error from Groq response: %s", exc)
+                return {"score": "Average", "disqualified": False, "reason": "Parse error"}
+            else:
+                log.error("Groq API error on attempt %d: %s", attempt, exc)
+                time.sleep(BASE_BACKOFF ** attempt)
 
     # All retries exhausted — default to Average/not disqualified
     log.error("All %d retries exhausted for question: %s", MAX_RETRIES, question[:80])
@@ -142,7 +152,7 @@ def evaluate_session(session_id: str) -> dict:
     """
     Main entry point — called after chatbot session COMPLETED.
     1. Fetch all Q&A pairs
-    2. Score each with Claude
+    2. Score each with Groq LLM
     3. Determine verdict (PASS / BORDERLINE / FAIL)
     4. Store in scores table
     5. Publish RabbitMQ event
@@ -223,51 +233,108 @@ def evaluate_session(session_id: str) -> dict:
 
         # ── Store in scores table ────────────────────────────────────────────
         score_record = Score(
-            application_id   = app.application_id if app else None,
-            skill_score      = avg_score,
-            total_score      = avg_score,
-            tag              = verdict,
-            rejection_reason = rejection_reason,
-            evaluation_detail= {
-                "answers":    eval_results,
-                "avg_score":  avg_score,
-                "disqualified": disqualified,
-                "evaluated_at": datetime.now(timezone.utc).isoformat(),
-            },
+            job_id           = session.job_id,
+            candidate_id     = session.candidate_id,
+            overall_score    = avg_score,
+            skill_match      = avg_score,
+            scoring_algorithm= "prescreening_ai",
         )
         db.add(score_record)
 
         # ── Update application stage ─────────────────────────────────────────
         if app:
             app.stage  = 5
-            app.status = "PRESCREENED"
+            app.status = "DONE"
+
+        # Fetch candidate name, email and job title before committing/closing
+        from shared.db.models import Candidate, Job
+        candidate = db.query(Candidate).filter_by(id=session.candidate_id).first()
+        job = db.query(Job).filter_by(id=session.job_id).first()
+        
+        candidate_id = session.candidate_id
+        job_id = session.job_id
+        candidate_name = candidate.name if candidate else None
+        candidate_email = candidate.email if candidate else None
+        job_title = job.title if job else None
+        app_id = app.id if app else None
 
         db.commit()
 
-        # ── Publish RabbitMQ event ───────────────────────────────────────────
-        event_payload = {
-            "candidate_id": str(session.candidate_id),
-            "job_id":       str(session.job_id),
-            "application_id": app.id if app else None,
-            "session_id":   session_id,
-            "verdict":      verdict,
-            "avg_score":    round(avg_score, 2),
-        }
+    # ── Publish RabbitMQ event and Auto-Create Interview Session ─────────────
+    event_payload = {
+        "candidate_id": str(candidate_id),
+        "job_id":       str(job_id),
+        "application_id": app_id,
+        "session_id":   session_id,
+        "verdict":      verdict,
+        "avg_score":    round(avg_score, 2),
+    }
 
-        if verdict == "PASS":
-            _publish_event(SCREENING_PASSED, event_payload)
-        else:
-            _publish_event(SCREENING_FAILED, {**event_payload, "rejection_reason": rejection_reason})
+    if verdict in ["PASS", "BORDERLINE"]:
+        # ═══════════════════════════════════════════════════════════════
+        # AUTO-CREATE INTERVIEW SESSION AND SEND INVITATION EMAIL
+        # ═══════════════════════════════════════════════════════════════
+        try:
+            from interview.session_manager import create_interview_session
+            from interview.interview_email_sender import send_interview_invitation_email
+            from datetime import datetime, timedelta
 
-        summary = {
-            "session_id":    session_id,
-            "verdict":       verdict,
-            "avg_score":     round(avg_score, 2),
-            "disqualified":  disqualified,
-            "total_answers": len(eval_results),
-        }
-        log.info("Evaluation complete: %s", summary)
-        return summary
+            if candidate_name and candidate_email and job_title:
+                # Create interview session
+                interview_session = create_interview_session(
+                    candidate_id=str(candidate_id),
+                    job_id=str(job_id),
+                    candidate_name=candidate_name,
+                    candidate_email=candidate_email,
+                    job_title=job_title
+                )
+
+                if interview_session:
+                    log.info(f"✅ Interview session created for {verdict} candidate: {interview_session['session_id']}")
+
+                    event_payload['interview_session_id'] = interview_session['session_id']
+                    event_payload['interview_url'] = interview_session['interview_url']
+
+                    # Send interview invitation email
+                    deadline = (datetime.now() + timedelta(days=7)).strftime("%B %d, %Y")
+                    email_sent = send_interview_invitation_email(
+                        candidate_email=candidate_email,
+                        candidate_name=candidate_name,
+                        job_title=job_title,
+                        interview_url=interview_session['interview_url'],
+                        completion_deadline=deadline,
+                        session_id=interview_session['session_id']
+                    )
+
+                    if email_sent:
+                        log.info(f"✅ Interview invitation email sent to {candidate_email}")
+                    else:
+                        log.warning(f"⚠️ Failed to send interview email to {candidate_email}")
+                else:
+                    log.warning(f"⚠️ Failed to create interview session for candidate {candidate_id}")
+            else:
+                log.warning(f"⚠️ Candidate or Job details missing for session {session_id}")
+
+        except Exception as e:
+            log.error(f"❌ Error in auto-interview creation: {e}")
+            import traceback
+            traceback.print_exc()
+
+        _publish_event(EventTopics.SCREENING_PASSED, event_payload)
+    else:
+        _publish_event(EventTopics.SCREENING_FAILED, {**event_payload, "rejection_reason": rejection_reason})
+
+    summary = {
+        "session_id":    session_id,
+        "verdict":       verdict,
+        "avg_score":     round(avg_score, 2),
+        "disqualified":  disqualified,
+        "total_answers": len(eval_results),
+        "interview_session_id": event_payload.get("interview_session_id"),
+        "interview_url": event_payload.get("interview_url"),
+    }
+    log.info("Evaluation complete: %s", summary)
+    return summary
 
 
 # ─────────────────────────────────────────────────────────────────────────────

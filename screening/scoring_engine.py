@@ -39,14 +39,42 @@ def _parse_skills(raw):
     if not raw:
         return []
     if isinstance(raw, list):
-        return [s.strip().lower() for s in raw]
-    try:
-        parsed = json.loads(raw)
-        if isinstance(parsed, list):
-            return [s.strip().lower() for s in parsed]
-    except (json.JSONDecodeError, TypeError):
-        pass
-    return []
+        skills = [s.strip().lower() for s in raw]
+    else:
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, list):
+                skills = [s.strip().lower() for s in parsed]
+            else:
+                skills = []
+        except (json.JSONDecodeError, TypeError):
+            skills = []
+    
+    # Normalize common skill variations
+    normalized = []
+    skill_aliases = {
+        'javascript': ['js', 'javascript', 'java script'],
+        'typescript': ['ts', 'typescript'],
+        'node.js': ['node', 'nodejs', 'node.js'],
+        'react': ['react', 'reactjs', 'react.js'],
+        'vue': ['vue', 'vuejs', 'vue.js'],
+        'angular': ['angular', 'angularjs'],
+        'python': ['python', 'py'],
+        'java': ['java'],
+        'c++': ['c++', 'cpp', 'cplusplus'],
+        'c#': ['c#', 'csharp'],
+    }
+    
+    for skill in skills:
+        # Find canonical name for this skill
+        canonical = skill
+        for canonical_name, aliases in skill_aliases.items():
+            if skill in aliases:
+                canonical = canonical_name
+                break
+        normalized.append(canonical)
+    
+    return normalized
 
 
 def _score_skills(candidate_skills, job_skills):

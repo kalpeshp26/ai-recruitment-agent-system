@@ -109,6 +109,37 @@ class Interview(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class InterviewEvaluation(Base):
+    __tablename__ = "interview_evaluations"
+
+    id = Column(String, primary_key=True, default=generate_id)
+    candidate_id = Column(String, ForeignKey("candidates.id"), nullable=False)
+    job_id = Column(String, ForeignKey("jobs.id"))
+    session_id = Column(String)
+    interview_id = Column(String)
+    phase = Column(String, nullable=False)
+    current_turn = Column(Integer)
+    total_turns = Column(Integer)
+    turn_number = Column(Integer)
+    question_text = Column(Text)
+    question_difficulty = Column(String)
+    candidate_response = Column(Text)
+    response_time_sec = Column(Float)
+    content_score = Column(Float)
+    behavior_score = Column(Float)
+    final_score = Column(Float)
+    intent = Column(String)
+    behavioral_snapshot = Column(Text)
+    is_followup = Column(Boolean, default=False)
+    followup_number = Column(Integer, default=0)
+    interviewer_name = Column(String)
+    interview_date = Column(Date)
+    evaluator_notes = Column(Text)
+    recommendation = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class Offer(Base):
     __tablename__ = "offers"
 

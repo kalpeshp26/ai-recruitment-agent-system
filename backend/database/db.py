@@ -10,7 +10,7 @@ from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from backend.config import settings
-from shared.db.database import Base
+from shared.db.database import Base, _sync_missing_columns
 
 
 _engine: AsyncEngine | None = None
@@ -70,11 +70,12 @@ async def init_db() -> None:
     metadata. For production (PostgreSQL) migrations are expected and
     this function performs no destructive actions.
     """
+    import shared.db.models  # noqa: F401
+
     engine = get_engine()
-    # Only auto-create tables for SQLite/dev to avoid interfering with migrations.
-    if _detect_db_is_sqlite(settings.DATABASE_URL):
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(_sync_missing_columns)
 
 
 __all__ = ["get_engine", "get_session_factory", "get_db", "init_db"]

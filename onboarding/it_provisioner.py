@@ -87,7 +87,7 @@ def save_it_provisioning(onboarding_id: int, company_email: str,
     conn.close()
 
 
-def provision(onboarding_id: int, candidate_id: int) -> dict:
+def _provision(onboarding_id: int, candidate_id: int) -> dict:
     info = get_candidate_and_role(candidate_id)
     company_email = generate_company_email(info['name'])
     licenses = assign_software_licenses(info['department'])
@@ -105,3 +105,22 @@ def provision(onboarding_id: int, candidate_id: int) -> dict:
 
     return {"company_email": company_email, "ticket": ticket_id,
             "licenses": licenses, "report": report_path}
+
+
+def provision_it_resources(onboarding_id: int, candidate_id: int | None = None) -> dict:
+    if candidate_id is None:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("SELECT candidate_id FROM onboarding WHERE id=?", (onboarding_id,))
+        row = cur.fetchone()
+        conn.close()
+        candidate_id = row[0] if row and row[0] else None
+
+    if candidate_id is None:
+        raise ValueError(f"Could not resolve candidate_id for onboarding {onboarding_id}")
+
+    return _provision(onboarding_id, candidate_id)
+
+
+def provision(onboarding_id: int, candidate_id: int) -> dict:
+    return _provision(onboarding_id, candidate_id)

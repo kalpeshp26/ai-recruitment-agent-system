@@ -1,5 +1,5 @@
 """
-AI Recruitment Multi-Agent System — Main Application
+AI Recruitment Multi-Agent System - Main Application
 FastAPI entry point that wires all agents together.
 """
 import json
@@ -25,13 +25,16 @@ from prescreening.prescreening_api import router as prescreening_router
 
 # Stage 6 & 7 routers
 try:
-    # Temporarily disabled to avoid NLTK issues
-    # from interview.routers.interview_router import router as interview_router
-    # from interview.routers.auth_bypass import router as auth_bypass_router
+    from interview.routers.interview_router import router as interview_router
+    from interview.routers.auth_bypass import router as auth_bypass_router
+    from interview.interview_api import router as interview_api_router
+    from evaluation.evaluation_api import router as evaluation_api_router
+    # Note: evaluation.routers.session_router may not exist, commenting out for now
     # from evaluation.routers.session_router import router as evaluation_router
-    INTERVIEW_AVAILABLE = False  # Temporarily disabled
+    INTERVIEW_AVAILABLE = True
+    print("SUCCESS: Interview modules loaded successfully")
 except ImportError as e:
-    print(f"⚠️ Interview/Evaluation modules not available: {e}")
+    print(f"WARNING: Interview/Evaluation modules not available: {e}")
     INTERVIEW_AVAILABLE = False
 
 
@@ -42,18 +45,17 @@ try:
     from interview.routers import auth_bypass as interview_auth_bypass
     INTERVIEW_AUTH_BYPASS_AVAILABLE = True
 except Exception as e:
-    print(f"⚠️ Could not import interview auth bypass router: {e}")
+    print(f"WARNING: Could not import interview auth bypass router: {e}")
 
 
-# Stage 8, 9, 10 routers
+# Stage 9, 10 routers
 try:
-    from offer.routers.offer_router import router as offer_router
     from onboarding.routers.onboarding_router import router as onboarding_router
     from analytics.routers.analytics_router import router as analytics_router
-    STAGES_8_9_10_AVAILABLE = True
+    STAGES_9_10_AVAILABLE = True
 except ImportError as e:
-    print(f"⚠️ Offer/Onboarding/Analytics modules not available: {e}")
-    STAGES_8_9_10_AVAILABLE = False
+    print(f"WARNING: Onboarding/Analytics modules not available: {e}")
+    STAGES_9_10_AVAILABLE = False
 
 
 @asynccontextmanager
@@ -61,7 +63,7 @@ async def lifespan(app: FastAPI):
     """Initialize database, RabbitMQ, and event subscriptions on startup."""
     await init_db()
     await event_bus.connect()
-    print(f"📡 Event bus backend: {event_bus.backend}")
+    print(f"Event bus backend: {event_bus.backend}")
     
     # Start the screening shortlister
     from screening.shortlister import start_event_listener
@@ -71,40 +73,38 @@ async def lifespan(app: FastAPI):
     try:
         from outreach.email_sender import process_candidate_shortlisted_event
         event_bus.subscribe("candidate.shortlisted", process_candidate_shortlisted_event)
-        print("✅ Outreach email sender subscribed to candidate.shortlisted events")
+        print("SUCCESS: Outreach email sender subscribed to candidate.shortlisted events")
     except ImportError as e:
-        print(f"⚠️ Outreach module not available: {e}")
+        print(f"WARNING: Outreach module not available: {e}")
     
     try:
         from prescreening.screening_chatbot import app as chatbot_app
-        print("✅ Prescreening chatbot available")
+        print("SUCCESS: Prescreening chatbot available")
     except ImportError as e:
-        print(f"⚠️ Prescreening module not available: {e}")
+        print(f"WARNING: Prescreening module not available: {e}")
     
-    # Start Stage 8, 9, 10 autonomous agents
+    # Start Stage 9, 10 autonomous agents
     try:
-        from offer.offer_agent import start_offer_agent
         from onboarding.onboarding_agent import start_onboarding_agent
         from analytics.analytics_agent import start_analytics_agent
         
-        start_offer_agent()
         start_onboarding_agent()
         start_analytics_agent()
-        print("✅ Stages 8, 9, 10 autonomous agents started")
+        print("SUCCESS: Stages 9, 10 autonomous agents started")
     except ImportError as e:
-        print(f"⚠️ Stage 8/9/10 agents not available: {e}")
+        print(f"WARNING: Stage 9/10 agents not available: {e}")
     
-    print("🚀 AI Recruitment System started")
-    print("📊 Dashboard: http://localhost:8000")
-    print("📚 API Docs:  http://localhost:8000/docs")
+    print("STARTUP: AI Recruitment System started")
+    print("Dashboard: http://localhost:8000")
+    print("API Docs:  http://localhost:8000/docs")
     yield
     await event_bus.close()
-    print("👋 AI Recruitment System shutting down")
+    print("SHUTDOWN: AI Recruitment System shutting down")
 
 
 app = FastAPI(
     title="AI Recruitment Multi-Agent System",
-    description="Multi-agent RPA system for automated recruitment — Resume Parsing, JD Generation, Job Posting, Candidate Intake",
+    description="Multi-agent RPA system for automated recruitment - Resume Parsing, JD Generation, Job Posting, Candidate Intake",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -118,7 +118,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Register Agent Routers ─────────────────────────────
+# ---- Register Agent Routers ----
 app.include_router(job_requisition_router, prefix="/api")
 app.include_router(job_poster_router, prefix="/api")
 app.include_router(resume_collector_router, prefix="/api")
@@ -132,27 +132,29 @@ app.include_router(prescreening_router, prefix="/api")
 if INTERVIEW_AVAILABLE:
     app.include_router(auth_bypass_router, prefix="/api")
     app.include_router(interview_router, prefix="/api")
-    app.include_router(evaluation_router, prefix="/api")
-    print("✅ Interview and Evaluation modules loaded")
+    app.include_router(interview_api_router, prefix="/api")
+    app.include_router(evaluation_api_router, prefix="/api")
+    # app.include_router(evaluation_router, prefix="/api")  # Commented out as may not exist
+    print("SUCCESS: Interview and Evaluation modules loaded")
+    print("SUCCESS: Interview session management API registered")
 
 # Stage 8, 9, 10 routers
-if STAGES_8_9_10_AVAILABLE:
-    app.include_router(offer_router, prefix="/api")
+if STAGES_9_10_AVAILABLE:
     app.include_router(onboarding_router, prefix="/api")
     app.include_router(analytics_router, prefix="/api")
-    print("✅ Offer, Onboarding, and Analytics modules loaded")
+    print("SUCCESS: Onboarding and Analytics modules loaded")
 
 # Mount interview auth bypass router (development helper)
 if INTERVIEW_AUTH_BYPASS_AVAILABLE and interview_auth_bypass:
     try:
         app.include_router(interview_auth_bypass.router, prefix="/api")
         app.include_router(interview_auth_bypass.router, prefix="/api/v1")
-        print("✅ Interview auth bypass router mounted at /api and /api/v1")
+        print("SUCCESS: Interview auth bypass router mounted at /api and /api/v1")
     except Exception as _e:
-        print(f"⚠️ Failed to mount interview auth bypass router at runtime: {_e}")
+        print(f"WARNING: Failed to mount interview auth bypass router at runtime: {_e}")
 
 
-# ── System Endpoints ──────────────────────────────────
+# ---- System Endpoints ----
 
 @app.get("/api/system/health")
 async def health_check():
@@ -292,7 +294,7 @@ async def list_agents():
     }
 
 
-# ── Serve Frontend ────────────────────────────────────
+# ---- Serve Frontend ----
 FRONTEND_DIR = Path(__file__).parent / "frontend"
 
 
@@ -434,7 +436,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     }
     
     # Log the full traceback for debugging
-    print(f"❌ Unhandled exception [{error_id}]: {exc.__class__.__name__}")
+    print(f"ERROR: Unhandled exception [{error_id}]: {exc.__class__.__name__}")
     traceback.print_exc()
     
     return JSONResponse(

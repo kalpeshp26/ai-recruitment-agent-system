@@ -237,7 +237,7 @@ def start_session(token: str, db: Session = Depends(get_db)):
 
     # Generate questions if not already done
     if not session.questions:
-        questions = _generate_questions(job.title, job.jd_text or "")
+        questions = _generate_questions(job.title, job.description or "")
         session.questions = questions
         session.status    = "IN_PROGRESS"
         db.commit()

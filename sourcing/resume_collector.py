@@ -151,6 +151,7 @@ async def list_candidates(
             "source": c.source,
             "source_profile_url": c.source_profile_url,
             "status": c.status,
+            "job_id": c.job_id,
             "resume_url": c.resume_url,
             "parsed_data": json.loads(c.parsed_data) if c.parsed_data and c.parsed_data.startswith('{') else None,
             "created_at": c.created_at.isoformat() if c.created_at else None,

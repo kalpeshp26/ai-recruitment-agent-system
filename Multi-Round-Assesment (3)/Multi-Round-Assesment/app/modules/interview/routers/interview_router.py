@@ -91,7 +91,7 @@ except Exception as e:
 @router.post("/resume/upload", response_model=ResumeUploadResponse)
 async def upload_resume(
     file: UploadFile = File(...),
-    session_id: Optional[int] = Query(None, description="Assessment session ID (optional)"),
+    session_id: Optional[str] = Query(None, description="Assessment session ID (optional)"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

@@ -245,21 +245,33 @@ async def run_screening(request: ScreeningRequest, db: AsyncSession = Depends(ge
     if request.candidate_ids:
         query = query.where(Candidate.id.in_(request.candidate_ids))
     elif request.job_id:
+        # Screen candidates linked to specific job
         query = query.where(Candidate.job_id == request.job_id)
         if not request.force_rescreen:
             query = query.where(Candidate.score.is_(None))
     else:
-        # Screen all unscreened candidates
+        # Screen all unscreened candidates that have a job_id
+        query = query.where(Candidate.job_id.isnot(None))
         if not request.force_rescreen:
             query = query.where(Candidate.score.is_(None))
     
     result = await db.execute(query)
     candidates = result.scalars().all()
     
+    # Count candidates without job_id for helpful error message
+    unlinked_query = select(Candidate).where(Candidate.job_id.is_(None))
+    unlinked_result = await db.execute(unlinked_query)
+    unlinked_count = len(unlinked_result.scalars().all())
+    
     if not candidates:
+        error_msg = "No candidates found to screen"
+        if unlinked_count > 0:
+            error_msg += f". Found {unlinked_count} candidate(s) without job assignment. Use the 'Link Candidates to Jobs' button first."
+        
         return {
-            "message": "No candidates found to screen",
+            "message": error_msg,
             "screened_count": 0,
+            "unlinked_candidates": unlinked_count,
             "results": []
         }
     
@@ -308,6 +320,7 @@ async def run_screening(request: ScreeningRequest, db: AsyncSession = Depends(ge
     return {
         "message": f"Screened {screened_count} candidates",
         "screened_count": screened_count,
+        "unlinked_candidates": unlinked_count,
         "results": results
     }
 

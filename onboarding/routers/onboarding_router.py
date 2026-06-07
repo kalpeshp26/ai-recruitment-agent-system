@@ -1,19 +1,21 @@
 """
-Onboarding API Router — Stage 9
+Onboarding API Router - Stage 9
 Handles task management, document collection, BGV, and IT provisioning.
 """
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 import sqlite3
+from datetime import datetime
 
 router = APIRouter(tags=["Stage 9: Onboarding"])
 
 
 class OnboardingCreateRequest(BaseModel):
-    candidate_id: int
-    offer_id: int
+    candidate_id: str
+    offer_id: str
     joining_date: str
+    job_id: Optional[str] = None
 
 
 class TaskCompleteRequest(BaseModel):
@@ -28,21 +30,21 @@ class DocumentSubmitRequest(BaseModel):
 
 @router.post("/onboarding/create")
 async def create_onboarding(req: OnboardingCreateRequest):
-    """Create onboarding record and task checklist."""
+    """Create onboarding record and AI-generated task checklist."""
     from onboarding.document_collector import create_onboarding_record
     from onboarding.onboarding_task_manager import create_task_checklist
     
     try:
         onboarding_id = create_onboarding_record(req.candidate_id, req.offer_id)
         task_count = create_task_checklist(
-            onboarding_id, req.candidate_id, req.joining_date
+            onboarding_id, req.candidate_id, req.joining_date, req.offer_id, req.job_id
         )
         
         return {
             "success": True,
             "onboarding_id": onboarding_id,
             "tasks_created": task_count,
-            "message": "Onboarding created successfully"
+            "message": "Onboarding created successfully with AI-generated tasks"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -159,6 +161,120 @@ async def provision_it(onboarding_id: int):
             "success": True,
             "message": "IT resources provisioned",
             "result": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/onboarding/from-interview")
+async def create_onboarding_from_interview(candidate_id: str, job_id: str, joining_date: str):
+    """Create onboarding for a candidate who passed their interview with AI-generated tasks."""
+    from onboarding.document_collector import create_onboarding_record
+    from onboarding.onboarding_task_manager import create_task_checklist
+    from shared.db.database import db_session
+    from shared.db.models import Candidate, Job, Application, Offer
+    from sqlalchemy import select
+    import uuid
+    
+    try:
+        with db_session() as db:
+            # Get candidate details
+            candidate = db.execute(
+                select(Candidate).where(Candidate.id == candidate_id).limit(1)
+            ).scalar_one_or_none()
+            
+            if not candidate:
+                raise HTTPException(status_code=404, detail="Candidate not found")
+            
+            # Get job details
+            job = db.execute(
+                select(Job).where(Job.id == job_id).limit(1)
+            ).scalar_one_or_none()
+            
+            if not job:
+                raise HTTPException(status_code=404, detail="Job not found")
+            
+            # Get or create application
+            application = db.execute(
+                select(Application).where(
+                    Application.candidate_id == candidate_id,
+                    Application.job_id == job_id
+                ).limit(1)
+            ).scalar_one_or_none()
+            
+            if not application:
+                # Create application if it doesn't exist
+                application = Application(
+                    candidate_id=candidate_id,
+                    job_id=job_id,
+                    status="HIRED",
+                    applied_at=datetime.now()
+                )
+                db.add(application)
+                db.flush()
+            
+            # Create offer record
+            offer_id = f"offer_{uuid.uuid4().hex[:8]}"
+            offer = Offer(
+                id=offer_id,
+                application_id=application.id,
+                salary_offered=job.salary_min if job.salary_min else 0,
+                currency=job.currency if job.currency else "INR",
+                status="accepted",
+                offered_at=datetime.now(),
+                accepted_at=datetime.now()
+            )
+            db.add(offer)
+            db.flush()
+            db.commit()
+        
+        # Create onboarding record with AI-generated tasks
+        onboarding_id = create_onboarding_record(candidate_id, offer_id)
+        task_count = create_task_checklist(
+            onboarding_id, candidate_id, joining_date, offer_id, job_id
+        )
+        
+        return {
+            "success": True,
+            "onboarding_id": onboarding_id,
+            "offer_id": offer_id,
+            "tasks_created": task_count,
+            "candidate_name": candidate.name,
+            "job_title": job.title,
+            "message": "Onboarding created successfully with AI-generated tasks from interview"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/onboarding/clear-mock")
+async def clear_mock_onboardings():
+    """Clear all mock onboarding records and their associated tasks."""
+    from config import DATABASE_URL
+    
+    try:
+        db_path = DATABASE_URL.replace("sqlite+aiosqlite:///", "")
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        
+        # Delete all onboarding tasks first (foreign key dependency)
+        cur.execute("DELETE FROM onboarding_tasks")
+        tasks_deleted = cur.rowcount
+        
+        # Delete all onboarding records
+        cur.execute("DELETE FROM onboarding")
+        onboarding_deleted = cur.rowcount
+        
+        conn.commit()
+        conn.close()
+        
+        return {
+            "success": True,
+            "onboarding_deleted": onboarding_deleted,
+            "tasks_deleted": tasks_deleted,
+            "message": f"Cleared {onboarding_deleted} onboarding records and {tasks_deleted} tasks"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

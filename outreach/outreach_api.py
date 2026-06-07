@@ -26,7 +26,7 @@ router = APIRouter(prefix="/outreach", tags=["outreach"])
 def _application_stage(status: Optional[str]) -> Optional[int]:
     if status in {"SHORTLISTED"}:
         return 4
-    if status in {"OUTREACH_SENT", "PRESCREENING", "PRESCREENED"}:
+    if status in {"OUTREACH_SENT", "PRESCREENING", "PRESCREENED", "DONE"}:
         return 5
     if status in {"SELECTED", "INTERVIEW", "INTERVIEW_SCHEDULED"}:
         return 6
@@ -58,8 +58,8 @@ async def get_outreach_stats(job_id: Optional[str] = None, db: AsyncSession = De
     result = await db.execute(query)
     applications = result.scalars().all()
     
-    total_shortlisted = len([a for a in applications if a.status in ["SHORTLISTED", "OUTREACH_SENT", "PRESCREENING", "PRESCREENED"]])
-    outreach_sent = len([a for a in applications if a.status in ["OUTREACH_SENT", "PRESCREENING", "PRESCREENED"]])
+    total_shortlisted = len([a for a in applications if a.status in ["SHORTLISTED", "OUTREACH_SENT", "PRESCREENING", "PRESCREENED", "DONE"]])
+    outreach_sent = len([a for a in applications if a.status in ["OUTREACH_SENT", "PRESCREENING", "PRESCREENED", "DONE"]])
     unresponsive = len([a for a in applications if a.status == "UNRESPONSIVE"])
     
     return OutreachStats(
@@ -89,7 +89,14 @@ async def get_outreach_candidates(
         query = query.where(Application.status == status)
     else:
         # Default to outreach-related statuses
-        query = query.where(Application.status.in_(["SHORTLISTED", "OUTREACH_SENT", "PRESCREENING", "UNRESPONSIVE"]))
+        # Also include candidates where Candidate.status is "shortlisted" even if Application status isn't set
+        from sqlalchemy import or_
+        query = query.where(
+            or_(
+                Application.status.in_(["SHORTLISTED", "OUTREACH_SENT", "PRESCREENING", "UNRESPONSIVE"]),
+                Candidate.status == "shortlisted"
+            )
+        )
     
     query = query.limit(limit)
     result = await db.execute(query)

@@ -37,14 +37,16 @@ def get_upload_path(candidate_id: int, doc_type: str) -> str:
     return os.path.join(folder, f"{doc_type}.pdf")
 
 
-def create_onboarding_record(candidate_id: int, offer_id: int) -> int:
+def create_onboarding_record(candidate_id: str, offer_id: str) -> str:
+    import uuid
+    onboarding_id = f"onb_{uuid.uuid4().hex[:8]}"
+    
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO onboarding (candidate_id, offer_id, status, documents_pending)
-        VALUES (?,?,?,?)
-    """, (candidate_id, offer_id, "pending", json.dumps(REQUIRED_DOCUMENTS)))
-    onboarding_id = cur.lastrowid
+        INSERT INTO onboarding (id, candidate_id, offer_id, status, documents_pending)
+        VALUES (?,?,?,?,?)
+    """, (onboarding_id, candidate_id, offer_id, "pending", json.dumps(REQUIRED_DOCUMENTS)))
     conn.commit()
     conn.close()
     return onboarding_id

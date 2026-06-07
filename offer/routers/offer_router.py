@@ -1,5 +1,5 @@
 """
-Offer Management API Router — Stage 8
+Offer Management API Router - Stage 8
 Handles offer generation, dispatch, negotiation, and rejection.
 """
 from fastapi import APIRouter, HTTPException
