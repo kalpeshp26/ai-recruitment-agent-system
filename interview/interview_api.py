@@ -29,10 +29,12 @@ async def list_interview_sessions(job_id: Optional[str] = None):
                         SELECT i.session_id, i.candidate_id, i.job_id, i.interview_status,
                                i.invited_at, i.started_at, i.completed_at,
                                c.name as candidate_name, c.email as candidate_email,
-                               j.title as job_title
+                               j.title as job_title,
+                               e.final_score, e.content_score, e.behavior_score, e.recommendation, e.evaluator_notes
                         FROM interview_sessions i
                         LEFT JOIN candidates c ON c.id = i.candidate_id
                         LEFT JOIN jobs j ON j.id = i.job_id
+                        LEFT JOIN interview_evaluations e ON e.session_id = i.session_id
                         WHERE i.job_id = :job_id
                         ORDER BY i.invited_at DESC
                     """)
@@ -42,10 +44,12 @@ async def list_interview_sessions(job_id: Optional[str] = None):
                         SELECT i.session_id, i.candidate_id, i.job_id, i.interview_status,
                                i.invited_at, i.started_at, i.completed_at,
                                c.name as candidate_name, c.email as candidate_email,
-                               j.title as job_title
+                               j.title as job_title,
+                               e.final_score, e.content_score, e.behavior_score, e.recommendation, e.evaluator_notes
                         FROM interview_sessions i
                         LEFT JOIN candidates c ON c.id = i.candidate_id
                         LEFT JOIN jobs j ON j.id = i.job_id
+                        LEFT JOIN interview_evaluations e ON e.session_id = i.session_id
                         ORDER BY i.invited_at DESC
                     """)
                     results = db.execute(query).fetchall()
@@ -63,7 +67,11 @@ async def list_interview_sessions(job_id: Optional[str] = None):
                         "candidate_name": row[7],
                         "candidate_email": row[8],
                         "job_title": row[9],
-                        "final_score": None
+                        "final_score": row[10],
+                        "technical_score": row[11],
+                        "communication_score": row[12],
+                        "recommendation": row[13],
+                        "summary": row[14]
                     }
 
                 logger.info(f"Retrieved {len(sessions_dict)} interview sessions from interview_sessions table")
@@ -362,169 +370,308 @@ async def validate_interview_session(session_id: str):
 
 @router.get("/completed-candidates")
 async def get_completed_candidates():
-    """Get candidates who have completed their interviews (status COMPLETED or evaluated)."""
+    """Get candidates who completed interviews or have HIRE/STRONG_HIRE evaluations."""
     from shared.db.database import db_session
-    from shared.db.models import Candidate, Job, InterviewEvaluation, Application, InterviewSession
+    from shared.db.models import Candidate, Job, InterviewEvaluation, Application
     from sqlalchemy import text, select
 
     try:
         with db_session() as db:
-            candidates_dict = {}  # Use dict to deduplicate by candidate_id + job_id
+            candidates_dict = {}  # deduplicate by candidate_id + job_id
 
-            # First, get candidates from interview_sessions with COMPLETED status
+            # ── 1. interview_sessions table (raw SQL – no ORM model needed) ──
             try:
                 query = text("""
                     SELECT i.session_id, i.candidate_id, i.job_id, i.interview_status,
                            i.completed_at,
-                           c.name as candidate_name, c.email as candidate_email,
-                           j.title as job_title
-                    FROM interview_sessions i
+                           c.name  AS candidate_name,
+                           c.email AS candidate_email,
+                           j.title AS job_title
+                    FROM   interview_sessions i
                     LEFT JOIN candidates c ON c.id = i.candidate_id
-                    LEFT JOIN jobs j ON j.id = i.job_id
-                    WHERE i.interview_status = 'COMPLETED'
-                    ORDER BY i.completed_at DESC
+                    LEFT JOIN jobs       j ON j.id = i.job_id
+                    WHERE  UPPER(COALESCE(i.interview_status,'')) = 'COMPLETED'
+                    ORDER  BY i.completed_at DESC
                 """)
-                results = db.execute(query).fetchall()
-
-                for row in results:
-                    key = f"{row[1]}_{row[2]}"  # candidate_id_job_id
+                for row in db.execute(query).fetchall():
+                    key = f"{row[1]}_{row[2]}"
                     candidates_dict[key] = {
-                        "session_id": row[0],
-                        "candidate_id": row[1],
-                        "job_id": row[2],
-                        "status": row[3],
-                        "completed_at": row[4].isoformat() if hasattr(row[4], "isoformat") else row[4],
-                        "candidate_name": row[5],
+                        "session_id":      row[0],
+                        "candidate_id":    row[1],
+                        "job_id":          row[2],
+                        "status":          row[3],
+                        "completed_at":    row[4].isoformat() if hasattr(row[4], "isoformat") else row[4],
+                        "candidate_name":  row[5],
                         "candidate_email": row[6],
-                        "job_title": row[7]
+                        "job_title":       row[7],
                     }
+                logger.info(f"interview_sessions: {len(candidates_dict)} candidates")
+            except Exception as e:
+                logger.warning(f"interview_sessions query failed: {e}")
 
-                logger.info(f"Retrieved {len(candidates_dict)} candidates from interview_sessions")
-            except Exception as table_error:
-                logger.warning(f"interview_sessions query failed: {table_error}")
-
-            # Second, get candidates who have interview evaluations (they completed the interview)
+            # ── 2. InterviewEvaluation with HIRE / STRONG_HIRE ────────────────
             try:
-                query = select(InterviewEvaluation).order_by(InterviewEvaluation.evaluated_at.desc())
-                result = db.execute(query)
-                evaluations = result.scalars().all()
+                evals = db.execute(
+                    select(InterviewEvaluation)
+                    .where(InterviewEvaluation.recommendation.in_(["HIRE", "STRONG_HIRE"]))
+                    .order_by(InterviewEvaluation.created_at.desc())
+                ).scalars().all()
 
-                for eval in evaluations:
-                    key = f"{eval.candidate_id}_{eval.job_id}"
-                    
-                    # Only add if not already in candidates_dict
-                    if key not in candidates_dict:
-                        # Get candidate details
-                        candidate = db.execute(
-                            select(Candidate).where(Candidate.id == eval.candidate_id).limit(1)
-                        )
-                        cand = candidate.scalar_one_or_none()
+                for ev in evals:
+                    key = f"{ev.candidate_id}_{ev.job_id}"
+                    if key in candidates_dict:
+                        continue
+                    cand = db.execute(
+                        select(Candidate).where(Candidate.id == ev.candidate_id).limit(1)
+                    ).scalar_one_or_none()
+                    job_obj = db.execute(
+                        select(Job).where(Job.id == ev.job_id).limit(1)
+                    ).scalar_one_or_none() if ev.job_id else None
+                    # also try candidate.job_id
+                    if not job_obj and cand and cand.job_id:
+                        job_obj = db.execute(
+                            select(Job).where(Job.id == cand.job_id).limit(1)
+                        ).scalar_one_or_none()
+                    if cand:
+                        candidates_dict[key] = {
+                            "session_id":      f"eval_{ev.id}",
+                            "candidate_id":    ev.candidate_id,
+                            "job_id":          ev.job_id or (cand.job_id if cand else None),
+                            "status":          "COMPLETED",
+                            "completed_at":    ev.created_at.isoformat() if ev.created_at else None,
+                            "candidate_name":  cand.name,
+                            "candidate_email": cand.email,
+                            "job_title":       job_obj.title if job_obj else "Unknown Position",
+                        }
+                logger.info(f"After evaluations: {len(candidates_dict)} candidates")
+            except Exception as e:
+                logger.warning(f"Evaluations query failed: {e}")
 
-                        # Get job details
-                        job = db.execute(
-                            select(Job).where(Job.id == eval.job_id).limit(1)
-                        )
-                        job_obj = job.scalar_one_or_none()
-
-                        if cand and job_obj:
-                            candidates_dict[key] = {
-                                "session_id": f"eval_{eval.id}",
-                                "candidate_id": eval.candidate_id,
-                                "job_id": eval.job_id,
-                                "status": "COMPLETED",
-                                "completed_at": eval.evaluated_at.isoformat() if eval.evaluated_at else None,
-                                "candidate_name": cand.name,
-                                "candidate_email": cand.email,
-                                "job_title": job_obj.title
-                            }
-
-                logger.info(f"Added candidates from evaluations, total: {len(candidates_dict)}")
-            except Exception as eval_error:
-                logger.warning(f"Evaluations query failed: {eval_error}")
-
-            # Third, get candidates with Application status HIRED or OFFER_ACCEPTED
+            # ── 3. Applications with HIRED / OFFER_ACCEPTED / OFFER_SENT ─────
             try:
-                query = select(Application).where(
-                    Application.status.in_(["HIRED", "OFFER_ACCEPTED", "OFFER_SENT"])
-                ).order_by(Application.updated_at.desc())
-                result = db.execute(query)
-                applications = result.scalars().all()
+                apps = db.execute(
+                    select(Application)
+                    .where(Application.status.in_(["HIRED", "OFFER_ACCEPTED", "OFFER_SENT"]))
+                    .order_by(Application.updated_at.desc())
+                ).scalars().all()
 
-                for app in applications:
+                for app in apps:
                     key = f"{app.candidate_id}_{app.job_id}"
-                    
-                    # Only add if not already in candidates_dict
-                    if key not in candidates_dict:
-                        # Get candidate details
-                        candidate = db.execute(
-                            select(Candidate).where(Candidate.id == app.candidate_id).limit(1)
-                        )
-                        cand = candidate.scalar_one_or_none()
+                    if key in candidates_dict:
+                        continue
+                    cand = db.execute(
+                        select(Candidate).where(Candidate.id == app.candidate_id).limit(1)
+                    ).scalar_one_or_none()
+                    job_obj = db.execute(
+                        select(Job).where(Job.id == app.job_id).limit(1)
+                    ).scalar_one_or_none()
+                    if cand and job_obj:
+                        candidates_dict[key] = {
+                            "session_id":      f"app_{app.id}",
+                            "candidate_id":    app.candidate_id,
+                            "job_id":          app.job_id,
+                            "status":          "COMPLETED",
+                            "completed_at":    app.updated_at.isoformat() if app.updated_at else None,
+                            "candidate_name":  cand.name,
+                            "candidate_email": cand.email,
+                            "job_title":       job_obj.title,
+                        }
+                logger.info(f"After applications: {len(candidates_dict)} candidates")
+            except Exception as e:
+                logger.warning(f"Applications query failed: {e}")
 
-                        # Get job details
-                        job = db.execute(
-                            select(Job).where(Job.id == app.job_id).limit(1)
-                        )
-                        job_obj = job.scalar_one_or_none()
-
-                        if cand and job_obj:
-                            candidates_dict[key] = {
-                                "session_id": f"app_{app.id}",
-                                "candidate_id": app.candidate_id,
-                                "job_id": app.job_id,
-                                "status": "COMPLETED",
-                                "completed_at": app.updated_at.isoformat() if app.updated_at else None,
-                                "candidate_name": cand.name,
-                                "candidate_email": cand.email,
-                                "job_title": job_obj.title
-                            }
-
-                logger.info(f"Added candidates from applications, total: {len(candidates_dict)}")
-            except Exception as app_error:
-                logger.warning(f"Applications query failed: {app_error}")
-
-            # Fourth, get candidates from InterviewSession table (published interview data)
+            # ── 4. All InterviewEvaluations (any recommendation) as last resort ──
+            # Ensures candidates with any completed evaluation appear, not just HIRE ones,
+            # but only if no other source already captured them.
             try:
-                query = select(InterviewSession).order_by(InterviewSession.completed_at.desc())
-                result = db.execute(query)
-                interview_sessions = result.scalars().all()
+                all_evals = db.execute(
+                    select(InterviewEvaluation)
+                    .order_by(InterviewEvaluation.created_at.desc())
+                ).scalars().all()
 
-                for session in interview_sessions:
-                    key = f"{session.candidate_id}_{session.job_id}"
-                    
-                    # Only add if not already in candidates_dict and session is completed
-                    if key not in candidates_dict and session.status == "COMPLETED":
-                        # Get candidate details
-                        candidate = db.execute(
-                            select(Candidate).where(Candidate.id == session.candidate_id).limit(1)
-                        )
-                        cand = candidate.scalar_one_or_none()
+                for ev in all_evals:
+                    job_id_eff = ev.job_id
+                    cand = None
+                    if not job_id_eff:
+                        cand = db.execute(
+                            select(Candidate).where(Candidate.id == ev.candidate_id).limit(1)
+                        ).scalar_one_or_none()
+                        if cand:
+                            job_id_eff = cand.job_id
+                    key = f"{ev.candidate_id}_{job_id_eff}"
+                    if key in candidates_dict:
+                        continue
+                    if not cand:
+                        cand = db.execute(
+                            select(Candidate).where(Candidate.id == ev.candidate_id).limit(1)
+                        ).scalar_one_or_none()
+                    job_obj = db.execute(
+                        select(Job).where(Job.id == job_id_eff).limit(1)
+                    ).scalar_one_or_none() if job_id_eff else None
+                    if cand:
+                        candidates_dict[key] = {
+                            "session_id":      f"eval_{ev.id}",
+                            "candidate_id":    ev.candidate_id,
+                            "job_id":          job_id_eff,
+                            "status":          "COMPLETED",
+                            "completed_at":    ev.created_at.isoformat() if ev.created_at else None,
+                            "candidate_name":  cand.name,
+                            "candidate_email": cand.email,
+                            "job_title":       job_obj.title if job_obj else "Unknown Position",
+                        }
+                logger.info(f"Final total completed candidates: {len(candidates_dict)}")
+            except Exception as e:
+                logger.warning(f"All-evaluations fallback query failed: {e}")
 
-                        # Get job details
-                        job = db.execute(
-                            select(Job).where(Job.id == session.job_id).limit(1)
-                        )
-                        job_obj = job.scalar_one_or_none()
-
-                        if cand and job_obj:
-                            candidates_dict[key] = {
-                                "session_id": session.session_id,
-                                "candidate_id": session.candidate_id,
-                                "job_id": session.job_id,
-                                "status": "COMPLETED",
-                                "completed_at": session.completed_at.isoformat() if session.completed_at else None,
-                                "candidate_name": cand.name,
-                                "candidate_email": cand.email,
-                                "job_title": job_obj.title
-                            }
-
-                logger.info(f"Added candidates from InterviewSession, total: {len(candidates_dict)}")
-            except Exception as session_error:
-                logger.warning(f"InterviewSession query failed: {session_error}")
-
-            logger.info(f"Total completed candidates: {len(candidates_dict)}")
             return {"success": True, "candidates": list(candidates_dict.values())}
 
     except Exception as e:
         logger.error(f"Failed to get completed candidates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/sessions/{session_id}/export/pdf")
+async def export_interview_session_pdf(session_id: str):
+    """Generate and return a PDF report of the candidate's interview details."""
+    from shared.db.database import db_session
+    from sqlalchemy import text
+    from io import BytesIO
+    from fastapi.responses import StreamingResponse
+    
+    # ReportLab imports
+    from reportlab.lib.pagesizes import A4
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+
+    try:
+        with db_session() as db:
+            # Query session details
+            query_session = text("""
+                SELECT i.id, i.candidate_id, i.job_id, i.completed_at,
+                       c.name as candidate_name, c.email as candidate_email,
+                       j.title as job_title,
+                       e.final_score, e.content_score, e.behavior_score, e.recommendation, e.evaluator_notes
+                FROM interview_sessions i
+                LEFT JOIN candidates c ON c.id = i.candidate_id
+                LEFT JOIN jobs j ON j.id = i.job_id
+                LEFT JOIN interview_evaluations e ON e.session_id = i.session_id
+                WHERE i.session_id = :session_id
+            """)
+            row = db.execute(query_session, {"session_id": session_id}).fetchone()
+            
+            if not row:
+                raise HTTPException(status_code=404, detail="Interview session not found")
+                
+            db_id, cand_id, job_id, completed_at, name, email, job_title, final_score, content_score, behavior_score, recommendation, notes = row
+            
+            # Query turns details
+            query_turns = text("""
+                SELECT turn_number, question_text, candidate_response, content_score, behavior_score, final_score
+                FROM interview_turns
+                WHERE interview_id = :interview_id
+                ORDER BY turn_number ASC
+            """)
+            turns = db.execute(query_turns, {"interview_id": db_id}).fetchall()
+            
+            # Generate PDF in memory
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4,
+                                    rightMargin=0.5*inch, leftMargin=0.5*inch,
+                                    topMargin=0.5*inch, bottomMargin=0.5*inch)
+            
+            styles = getSampleStyleSheet()
+            
+            # Custom styles
+            title_style = ParagraphStyle(
+                'DocTitle',
+                parent=styles['Title'],
+                textColor=colors.HexColor('#1e293b'),
+                fontSize=22,
+                spaceAfter=12
+            )
+            h2_style = ParagraphStyle(
+                'SectionHeader',
+                parent=styles['Heading2'],
+                textColor=colors.HexColor('#0f172a'),
+                fontSize=14,
+                spaceBefore=12,
+                spaceAfter=6
+            )
+            body_style = ParagraphStyle(
+                'BodyTextCustom',
+                parent=styles['Normal'],
+                textColor=colors.HexColor('#334155'),
+                fontSize=10,
+                leading=14
+            )
+            bold_style = ParagraphStyle(
+                'BodyBold',
+                parent=body_style,
+                fontName='Helvetica-Bold'
+            )
+            
+            story = []
+            
+            # Document Title
+            story.append(Paragraph("AI Interview Scorecard", title_style))
+            story.append(Spacer(1, 0.1*inch))
+            
+            # Metadata Table
+            meta_data = [
+                [Paragraph("<b>Candidate Name:</b>", body_style), Paragraph(str(name or "N/A"), body_style),
+                 Paragraph("<b>Job Title:</b>", body_style), Paragraph(str(job_title or "N/A"), body_style)],
+                [Paragraph("<b>Email:</b>", body_style), Paragraph(str(email or "N/A"), body_style),
+                 Paragraph("<b>Completed At:</b>", body_style), Paragraph(str(completed_at or "N/A"), body_style)],
+                [Paragraph("<b>Final Score:</b>", body_style), Paragraph(f"{round((final_score or 0) * 100, 1)}%" if final_score is not None else "N/A", body_style),
+                 Paragraph("<b>Recommendation:</b>", body_style), Paragraph(str(recommendation or "N/A"), bold_style)],
+                [Paragraph("<b>Technical Score:</b>", body_style), Paragraph(f"{round((content_score or 0) * 100, 1)}%" if content_score is not None else "N/A", body_style),
+                 Paragraph("<b>Communication Score:</b>", body_style), Paragraph(f"{round((behavior_score or 0) * 100, 1)}%" if behavior_score is not None else "N/A", body_style)]
+            ]
+            meta_table = Table(meta_data, colWidths=[1.5*inch, 2.0*inch, 1.5*inch, 2.0*inch])
+            meta_table.setStyle(TableStyle([
+                ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f8fafc')),
+                ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#e2e8f0')),
+                ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
+                ('PADDING', (0,0), (-1,-1), 8),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE')
+            ]))
+            story.append(meta_table)
+            story.append(Spacer(1, 0.2*inch))
+            
+            # Summary / Evaluator Notes
+            if notes:
+                story.append(Paragraph("Evaluator Summary", h2_style))
+                story.append(Paragraph(str(notes), body_style))
+                story.append(Spacer(1, 0.2*inch))
+                
+            # Questions and Answers
+            if turns:
+                story.append(Paragraph("Detailed Q&A Transcript", h2_style))
+                for t in turns:
+                    t_num, q_text, ans_text, c_scr, b_scr, f_scr = t
+                    turn_title = f"<b>Question {t_num}</b>"
+                    if f_scr is not None:
+                        turn_title += f" (Score: {round(f_scr * 100, 1)}%)"
+                    
+                    story.append(Paragraph(turn_title, bold_style))
+                    story.append(Spacer(1, 0.05*inch))
+                    story.append(Paragraph(f"<b>Q:</b> {q_text}", body_style))
+                    story.append(Spacer(1, 0.03*inch))
+                    story.append(Paragraph(f"<b>A:</b> {ans_text or 'No response'}", body_style))
+                    story.append(Spacer(1, 0.15*inch))
+                    
+            doc.build(story)
+            buffer.seek(0)
+            
+            filename = f"scorecard_{name.replace(' ', '_')}_{session_id[:8]}.pdf" if name else f"scorecard_{session_id}.pdf"
+            return StreamingResponse(
+                buffer,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+            )
+            
+    except Exception as e:
+        logger.error(f"Failed to export interview session PDF: {e}")
         raise HTTPException(status_code=500, detail=str(e))

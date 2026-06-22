@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Recruitment System — Agent Dashboard</title>
     <meta name="description" content="Multi-Agent AI Recruitment System Testing Dashboard">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/style.css?v=6">
 </head>
+
 <body class="sidebar-collapsed">
     <!-- ═══ Background Animation ═══ -->
     <div class="bg-grid"></div>
@@ -21,10 +24,10 @@
             <div class="logo">
                 <div class="logo-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="8" r="4"/>
-                        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        <path d="M21 21v-2a4 4 0 0 0-3-3.87"/>
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
                     </svg>
                 </div>
                 <div>
@@ -41,8 +44,9 @@
             <div class="header-actions">
                 <button class="btn btn-ghost" onclick="loadEvents()" title="Refresh Events">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        <path d="M23 4v6h-6" />
+                        <path d="M1 20v-6h6" />
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                     </svg>
                 </button>
             </div>
@@ -66,55 +70,63 @@
                 </button>
                 <button class="tab-btn active" data-tab="overview">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
                     </svg>
                     <span class="nav-label">Dashboard</span>
                 </button>
                 <button class="tab-btn" data-tab="stage1">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                     </svg>
                     <span class="nav-label">Job Intake</span>
                 </button>
                 <button class="tab-btn" data-tab="stage2">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
                     <span class="nav-label">Candidate Intake</span>
                 </button>
                 <button class="tab-btn" data-tab="stage3">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
+                        <path d="M9 12l2 2 4-4" />
+                        <circle cx="12" cy="12" r="10" />
                     </svg>
-                    <span class="nav-label">Screening</span>
+                    <span class="nav-label">Resume Screening</span>
                 </button>
                 <button class="tab-btn" data-tab="stage4">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                        <polyline points="22,6 12,13 2,6"/>
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
                     </svg>
                     <span class="nav-label">Outreach</span>
                 </button>
                 <button class="tab-btn" data-tab="stage5">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        <line x1="9" y1="10" x2="15" y2="10"/>
-                        <line x1="12" y1="7" x2="12" y2="13"/>
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        <line x1="9" y1="10" x2="15" y2="10" />
+                        <line x1="12" y1="7" x2="12" y2="13" />
                     </svg>
                     <span class="nav-label">Prescreening</span>
                 </button>
                 <button class="tab-btn" data-tab="stage6">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                        <path d="M23 7l-7 5 7 5V7z" />
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
                     </svg>
                     <span class="nav-label">Interview & Evaluation</span>
                 </button>
                 <button class="tab-btn" data-tab="stage9">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
                     </svg>
                     <span class="nav-label">Onboarding</span>
                 </button>
@@ -182,9 +194,11 @@
                 <div class="panel-header">
                     <h2>Recruitment Funnel</h2>
                     <button class="btn btn-ghost btn-sm" onclick="loadAnalyticsDashboard()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <path d="M23 4v6h-6" />
+                            <path d="M1 20v-6h6" />
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                         </svg>
                         Refresh
                     </button>
@@ -194,25 +208,6 @@
                 </div>
             </div>
 
-            <!-- Export Options -->
-            <div class="panel">
-                <div class="panel-header">
-                    <h2>Export Reports</h2>
-                </div>
-                <div style="display: flex; gap: 1rem;">
-                    <button class="btn btn-primary" onclick="exportAnalyticsCSV()" style="flex: 1;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Export CSV
-                    </button>
-                    <button class="btn btn-primary" onclick="exportAnalyticsPDF()" style="flex: 1;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Export PDF
-                    </button>
-                </div>
             </div>
         </section>
 
@@ -269,19 +264,23 @@
                         <input type="text" id="job-skills" placeholder="e.g. Python, FastAPI, PostgreSQL, Docker">
                     </div>
                     <div class="info-box">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M9 12l2 2 4-4" />
                         </svg>
                         Professional job description will be automatically generated using AI
                     </div>
                     <button type="submit" class="btn btn-primary" id="btn-create-job">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                            height="18">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
                         Create Job with AI Description
                     </button>
                 </form>
-                
+
                 <!-- Generated JD Result -->
                 <div id="jd-result" class="result-panel hidden">
                     <h3>Generated Job Description</h3>
@@ -320,10 +319,13 @@
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary" id="btn-post-job">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                            height="18">
+                            <circle cx="18" cy="5" r="3" />
+                            <circle cx="6" cy="12" r="3" />
+                            <circle cx="18" cy="19" r="3" />
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                         </svg>
                         Post to Selected Platforms
                     </button>
@@ -362,9 +364,9 @@
                 </div>
                 <div class="upload-zone" id="upload-zone">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
                     </svg>
                     <p>Drag & drop a resume here, or click to browse</p>
                     <span class="upload-hint">Supports PDF, DOCX, TXT (max 10MB)</span>
@@ -388,7 +390,8 @@
                     <h2>Enter Candidate Details</h2>
                     <span class="agent-badge">Candidate Form Agent</span>
                 </div>
-                <p class="panel-description">Provide candidate information required for screening (skills, experience, education, location).</p>
+                <p class="panel-description">Provide candidate information required for screening (skills, experience,
+                    education, location).</p>
                 <form id="candidate-form" onsubmit="addCandidateForm(event)">
                     <div class="form-group">
                         <label for="candidate-job-select">Apply to Job *</label>
@@ -397,7 +400,7 @@
                         </select>
                         <small class="form-help">Required — links candidate to job requirements for screening.</small>
                     </div>
-                    
+
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="candidate-name">Full Name *</label>
@@ -439,18 +442,22 @@
 
                     <div class="form-group">
                         <label for="candidate-skills">Skills (comma-separated) *</label>
-                        <input type="text" id="candidate-skills" required placeholder="e.g. Python, JavaScript, React, SQL">
-                        <small class="form-help">Required for skill-match scoring — enter skills separated by commas</small>
+                        <input type="text" id="candidate-skills" required
+                            placeholder="e.g. Python, JavaScript, React, SQL">
+                        <small class="form-help">Required for skill-match scoring — enter skills separated by
+                            commas</small>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="candidate-linkedin">LinkedIn/Portfolio URL</label>
                         <input type="url" id="candidate-linkedin" placeholder="e.g. https://linkedin.com/in/johndoe">
                     </div>
-                    
+
                     <button type="submit" class="btn btn-primary" id="btn-add-candidate">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                            height="18">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
                         Add Candidate
                     </button>
@@ -477,7 +484,7 @@
         <section class="tab-content" id="tab-stage3">
             <!-- Header -->
             <div class="stage3-header">
-                <h1>Candidate Screening Engine</h1>
+                <h1>Candidate Resume Screening Engine</h1>
                 <p class="stage3-subtitle">Automated scoring and shortlisting pipeline</p>
             </div>
 
@@ -485,8 +492,10 @@
             <div class="stats-grid" id="screening-stats">
                 <div class="stat-card">
                     <div class="stat-icon blue">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <circle cx="12" cy="8" r="4" />
+                            <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -496,8 +505,10 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon green">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <path d="M9 12l2 2 4-4" />
+                            <circle cx="12" cy="12" r="10" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -507,8 +518,9 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon purple">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -518,8 +530,11 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon orange">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -529,8 +544,10 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon red">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <circle cx="12" cy="12" r="3" />
+                            <path d="M12 1v6m0 6v6" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -540,8 +557,9 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon cyan">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -554,7 +572,8 @@
             <!-- Auto Detection Banner -->
             <div id="auto-detection-banner" class="info-banner hidden">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                    <circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9 12l2 2 4-4" />
                 </svg>
                 <span id="auto-detection-text">Candidates detected from intake module and loaded automatically</span>
             </div>
@@ -606,22 +625,27 @@
                 </div>
                 <div class="screening-actions">
                     <button class="btn btn-primary" id="btn-run-screening" onclick="runScreening()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                            height="18">
+                            <polygon points="5 3 19 12 5 21 5 3" />
                         </svg>
                         Run Screening
                     </button>
                     <button class="btn btn-ghost" onclick="runScreening(true)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                            height="18">
+                            <path d="M23 4v6h-6" />
+                            <path d="M1 20v-6h6" />
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                         </svg>
                         Re-run Screening
                     </button>
                     <button class="btn btn-ghost" onclick="loadScreeningData()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                            height="18">
+                            <path d="M23 4v6h-6" />
+                            <path d="M1 20v-6h6" />
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                         </svg>
                         Refresh Data
                     </button>
@@ -662,9 +686,11 @@
                 <div class="panel-header">
                     <h3>Outreach Candidates</h3>
                     <button class="btn btn-primary" onclick="loadOutreachData()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                            height="18">
+                            <path d="M23 4v6h-6" />
+                            <path d="M1 20v-6h6" />
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                         </svg>
                         Refresh
                     </button>
@@ -718,10 +744,7 @@
                         <span class="stat-mini-value" id="prescreening-passed">0</span>
                         <span class="stat-mini-label">Passed</span>
                     </div>
-                    <div class="stat-mini">
-                        <span class="stat-mini-value" id="bgv-cleared">0</span>
-                        <span class="stat-mini-label">BGV Cleared</span>
-                    </div>
+
                 </div>
             </div>
 
@@ -729,8 +752,9 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon blue">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -740,8 +764,9 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon green">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <polyline points="20 6 9 17 4 12"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <polyline points="20 6 9 17 4 12" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -751,8 +776,10 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon purple">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -762,8 +789,10 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon orange">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -782,52 +811,78 @@
 
                 <!-- Candidate Selection -->
                 <div class="form-group" style="margin-bottom: 1.5rem;">
-                    <label for="prescreening-candidate-select" style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; display: block;">Select Candidate</label>
-                    <p style="opacity: 0.65; font-size: 0.9rem; margin-bottom: 0.75rem;">Choose a candidate to begin their prescreening. Our AI will generate 6 tailored questions specific to their applied job role.</p>
-                    <select id="prescreening-candidate-select" class="form-control" onchange="onPrescreeningCandidateChange()" style="font-size: 1rem; padding: 0.75rem 1rem;">
+                    <label for="prescreening-candidate-select"
+                        style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; display: block;">Select
+                        Candidate</label>
+                    <p style="opacity: 0.65; font-size: 0.9rem; margin-bottom: 0.75rem;">Choose a candidate to begin
+                        their prescreening. Our AI will generate 6 tailored questions specific to their applied job
+                        role.</p>
+                    <select id="prescreening-candidate-select" class="form-control"
+                        onchange="onPrescreeningCandidateChange()" style="font-size: 1rem; padding: 0.75rem 1rem;">
                         <option value="">-- Select a Candidate --</option>
                     </select>
                 </div>
 
                 <!-- Loading State -->
                 <div id="prescreening-loading" style="display: none; text-align: center; padding: 2rem;">
-                    <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem;"></div>
+                    <div
+                        style="display: inline-block; width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem;">
+                    </div>
                     <p id="prescreening-loading-text" style="opacity: 0.7;">Generating personalised questions...</p>
                 </div>
 
                 <!-- Questions Form -->
                 <div id="candidate-demo-container" style="display: none;">
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 24px; border-radius: 10px; margin-bottom: 1.5rem; color: white;">
-                        <h3 id="prescreening-job-title-header" style="margin: 0 0 6px 0; font-size: 1.1rem;">🤖 AI Prescreening Interview</h3>
-                        <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Answer all questions honestly and thoroughly. Minimum 20 characters per answer.</p>
+                    <div
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 24px; border-radius: 10px; margin-bottom: 1.5rem; color: white;">
+                        <h3 id="prescreening-job-title-header" style="margin: 0 0 6px 0; font-size: 1.1rem;">🤖 AI
+                            Prescreening Interview</h3>
+                        <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Answer all questions honestly and
+                            thoroughly. Minimum 100 characters per answer.</p>
                     </div>
                     <div id="demo-questions-container"></div>
                 </div>
 
                 <!-- Result View -->
                 <div id="prescreening-success-container" style="display: none; margin-top: 1rem;">
-                    <div style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(5,150,105,0.1) 100%); border: 1px solid rgba(16,185,129,0.4); border-radius: 12px; padding: 2rem; text-align: center;">
+                    <div
+                        style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(5,150,105,0.1) 100%); border: 1px solid rgba(16,185,129,0.4); border-radius: 12px; padding: 2rem; text-align: center;">
                         <div style="font-size: 3rem; margin-bottom: 0.75rem;">✅</div>
-                        <h3 style="margin: 0 0 0.5rem 0; color: #10b981; font-size: 1.3rem;">Prescreening Submitted!</h3>
-                        <p id="prescreening-verdict-msg" style="font-size: 1.05rem; margin: 0.5rem 0 1.5rem 0; opacity: 0.9;"></p>
+                        <h3 style="margin: 0 0 0.5rem 0; color: #10b981; font-size: 1.3rem;">Prescreening Submitted!
+                        </h3>
+                        <p id="prescreening-verdict-msg"
+                            style="font-size: 1.05rem; margin: 0.5rem 0 1.5rem 0; opacity: 0.9;"></p>
 
-                        <div id="prescreening-pass-details" style="display: none; background: rgba(102,126,234,0.12); border: 1px solid rgba(102,126,234,0.35); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; text-align: left;">
-                            <p style="margin: 0 0 0.5rem 0; font-weight: 600; font-size: 0.95rem; color: #818cf8;">🎯 Interview Session Created</p>
-                            <p style="margin: 0 0 0.75rem 0; opacity: 0.8; font-size: 0.88rem;">The candidate passed! Share the session ID below — they enter it in the interview app to start their interview.</p>
-                            <div style="display: flex; align-items: center; gap: 0.75rem; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.75rem 1rem;">
+                        <div id="prescreening-pass-details"
+                            style="display: none; background: rgba(102,126,234,0.12); border: 1px solid rgba(102,126,234,0.35); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; text-align: left;">
+                            <p style="margin: 0 0 0.5rem 0; font-weight: 600; font-size: 0.95rem; color: #818cf8;">🎯
+                                Interview Session Created</p>
+                            <p style="margin: 0 0 0.75rem 0; opacity: 0.8; font-size: 0.88rem;">The candidate passed!
+                                Share the session ID below — they enter it in the interview app to start their
+                                interview.</p>
+                            <div
+                                style="display: flex; align-items: center; gap: 0.75rem; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.75rem 1rem;">
                                 <span style="opacity: 0.7; font-size: 0.85rem; white-space: nowrap;">Session ID:</span>
-                                <code id="prescreening-session-id-display" style="font-size: 1rem; font-weight: 700; color: #a5b4fc; flex: 1; word-break: break-all;"></code>
-                                <button onclick="navigator.clipboard.writeText(document.getElementById('prescreening-session-id-display').textContent); showToast('Session ID copied!', 'success')"
-                                    class="btn btn-ghost btn-sm" title="Copy Session ID" style="padding: 0.3rem 0.6rem; flex-shrink: 0;">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                <code id="prescreening-session-id-display"
+                                    style="font-size: 1rem; font-weight: 700; color: #a5b4fc; flex: 1; word-break: break-all;"></code>
+                                <button
+                                    onclick="navigator.clipboard.writeText(document.getElementById('prescreening-session-id-display').textContent); showToast('Session ID copied!', 'success')"
+                                    class="btn btn-ghost btn-sm" title="Copy Session ID"
+                                    style="padding: 0.3rem 0.6rem; flex-shrink: 0;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        width="16" height="16">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                                     </svg>
                                 </button>
                             </div>
-                            <p style="margin: 0.75rem 0 0 0; opacity: 0.65; font-size: 0.82rem;">💡 Candidate opens the interview app at <code style="opacity:0.9;">http://localhost:5173</code> and enters this session ID to begin.</p>
+                            <p style="margin: 0.75rem 0 0 0; opacity: 0.65; font-size: 0.82rem;">💡 Candidate opens the
+                                interview app at <code style="opacity:0.9;">http://localhost:5173</code> and enters this
+                                session ID to begin.</p>
                         </div>
 
-                        <button class="btn btn-primary" onclick="resetPrescreeningForm()" style="padding: 0.75rem 2rem;">
+                        <button class="btn btn-primary" onclick="resetPrescreeningForm()"
+                            style="padding: 0.75rem 2rem;">
                             Start Another Prescreening
                         </button>
                     </div>
@@ -836,10 +891,14 @@
                 <!-- Info Footer -->
                 <div class="info-box" style="margin-top: 1.25rem;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
                     </svg>
                     <div>
-                        <strong>How it works:</strong> Select a candidate → AI generates 6 job-specific questions → Candidate answers → AI evaluates and scores → If passed, an interview session ID is created for the multi-round assessment app.
+                        <strong>How it works:</strong> Select a candidate → AI generates 6 job-specific questions →
+                        Candidate answers → AI evaluates and scores → If passed, an interview session ID is created for
+                        the multi-round assessment app.
                     </div>
                 </div>
             </div>
@@ -850,16 +909,19 @@
                     <h3>Prescreening Sessions</h3>
                     <div style="display: flex; gap: 12px;">
                         <button class="btn btn-ghost btn-sm" onclick="exportPrescreeningData()">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7 10 12 15 17 10"/>
-                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                                height="16">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
                             </svg>
                             Export
                         </button>
                         <button class="btn btn-ghost btn-sm" onclick="runBulkEvaluation()">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                                height="16">
+                                <path d="M9 12l2 2 4-4" />
+                                <circle cx="12" cy="12" r="10" />
                             </svg>
                             Bulk Evaluate
                         </button>
@@ -894,9 +956,10 @@
                 <div class="panel-header">
                     <h3>Session Details</h3>
                     <button class="btn btn-ghost btn-sm" onclick="closeSessionDetails()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                         Close
                     </button>
@@ -918,8 +981,10 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon blue">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <path d="M23 7l-7 5 7 5V7z" />
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -929,8 +994,9 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon green">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <polyline points="20 6 9 17 4 12"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <polyline points="20 6 9 17 4 12" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -940,8 +1006,10 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon purple">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -951,8 +1019,11 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon orange">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -968,25 +1039,29 @@
                     <h2>Submit Interview Results</h2>
                     <span class="agent-badge">Manual Entry</span>
                 </div>
-                <p style="opacity: 0.7; margin-bottom: 1.5rem;">Select the generated interview session and enter the round output scores</p>
-                
+                <p style="opacity: 0.7; margin-bottom: 1.5rem;">Select the generated interview session and enter the
+                    round output scores</p>
+
                 <form id="interview-data-form" onsubmit="submitInterviewData(event)">
                     <div class="form-group">
                         <label for="interview-session-select">Candidate Session ID *</label>
                         <select id="interview-session-select" required>
                             <option value="">-- Select generated session --</option>
                         </select>
-                        <small class="form-help">This session is generated automatically when prescreening is passed</small>
+                        <small class="form-help">This session is generated automatically when prescreening is
+                            passed</small>
                     </div>
 
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="interview-candidate-name">Candidate</label>
-                            <input type="text" id="interview-candidate-name" readonly placeholder="Selected from session">
+                            <input type="text" id="interview-candidate-name" readonly
+                                placeholder="Selected from session">
                         </div>
                         <div class="form-group">
                             <label for="interview-candidate-email">Email</label>
-                            <input type="text" id="interview-candidate-email" readonly placeholder="Selected from session">
+                            <input type="text" id="interview-candidate-email" readonly
+                                placeholder="Selected from session">
                         </div>
                         <div class="form-group">
                             <label for="interview-job-title">Job</label>
@@ -1019,25 +1094,31 @@
                         </div>
                     </div>
 
-                    <h4 style="margin: 1.5rem 0 1rem 0; font-size: 1rem; opacity: 0.9;">Round Output Scores (0.0-1.0)</h4>
+                    <h4 style="margin: 1.5rem 0 1rem 0; font-size: 1rem; opacity: 0.9;">Round Output Scores (0.0-1.0)
+                    </h4>
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="interview-content-score">Content Score</label>
-                            <input type="number" id="interview-content-score" min="0" max="1" step="0.01" placeholder="0.75">
+                            <input type="number" id="interview-content-score" min="0" max="1" step="0.01"
+                                placeholder="0.75">
                         </div>
                         <div class="form-group">
                             <label for="interview-behavior-score">Behavior Score</label>
-                            <input type="number" id="interview-behavior-score" min="0" max="1" step="0.01" placeholder="0.75">
+                            <input type="number" id="interview-behavior-score" min="0" max="1" step="0.01"
+                                placeholder="0.75">
                         </div>
                         <div class="form-group">
                             <label for="interview-final-score">Final Score *</label>
-                            <input type="number" id="interview-final-score" min="0" max="1" step="0.01" placeholder="0.75" required>
+                            <input type="number" id="interview-final-score" min="0" max="1" step="0.01"
+                                placeholder="0.75" required>
                         </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary" id="btn-submit-interview">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                            <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                            height="18">
+                            <path d="M9 12l2 2 4-4" />
+                            <circle cx="12" cy="12" r="10" />
                         </svg>
                         Submit & Generate Evaluation
                     </button>
@@ -1059,21 +1140,25 @@
                 <div class="panel-header">
                     <h2>Evaluation Results</h2>
                     <button class="btn btn-ghost btn-sm" onclick="loadEvaluationResults()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <path d="M23 4v6h-6" />
+                            <path d="M1 20v-6h6" />
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                         </svg>
                         Refresh
                     </button>
                 </div>
                 <div id="evaluation-results-list" class="cards-list">
                     <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48" style="opacity: 0.3; margin-bottom: 1rem;">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48"
+                            height="48" style="opacity: 0.3; margin-bottom: 1rem;">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
                         </svg>
                         <p>No evaluation results yet</p>
-                        <span style="opacity: 0.7; font-size: 0.9em;">Submit interview data above to generate evaluation reports</span>
+                        <span style="opacity: 0.7; font-size: 0.9em;">Submit interview data above to generate evaluation
+                            reports</span>
                     </div>
                 </div>
             </div>
@@ -1092,8 +1177,10 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon blue">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <circle cx="12" cy="8" r="4" />
+                            <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -1103,8 +1190,9 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon green">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <polyline points="20 6 9 17 4 12"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <polyline points="20 6 9 17 4 12" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -1114,8 +1202,10 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon orange">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -1125,8 +1215,10 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon purple">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <rect x="2" y="7" width="20" height="14" rx="2" />
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
                         </svg>
                     </div>
                     <div class="stat-info">
@@ -1143,9 +1235,11 @@
                 </div>
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                     <button class="btn btn-primary btn-sm" onclick="loadCompletedCandidates()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <path d="M23 4v6h-6" />
+                            <path d="M1 20v-6h6" />
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                         </svg>
                         Refresh Candidates
                     </button>
@@ -1159,14 +1253,17 @@
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
                     <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Select Candidate (Completed Interview/Evaluation)</label>
-                        <select id="candidate-select" onchange="onCandidateSelected()" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--bg-secondary);">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Select Candidate
+                            (Completed Interview/Evaluation)</label>
+                        <select id="candidate-select" onchange="onCandidateSelected()"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--bg-secondary);">
                             <option value="">-- Choose a Candidate --</option>
                         </select>
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Joining Date</label>
-                        <input type="date" id="joining-date" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--bg-secondary);">
+                        <input type="date" id="joining-date"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--bg-secondary);">
                     </div>
                     <button class="btn btn-primary" onclick="generateTasksForCandidate()">
                         Generate Tasks & Create Onboarding
@@ -1179,8 +1276,10 @@
                 <div class="panel-header">
                     <h2>Generated Tasks</h2>
                     <button class="btn btn-ghost btn-sm" onclick="closeTasksPanel()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                     </button>
                 </div>
@@ -1194,20 +1293,25 @@
                 <div class="panel-header">
                     <h2>Onboarding Records</h2>
                     <button class="btn btn-ghost btn-sm" onclick="loadOnboarding()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <path d="M23 4v6h-6" />
+                            <path d="M1 20v-6h6" />
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                         </svg>
                         Refresh
                     </button>
                 </div>
                 <div id="onboarding-list" class="cards-list">
                     <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48" style="opacity: 0.3; margin-bottom: 1rem;">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48"
+                            height="48" style="opacity: 0.3; margin-bottom: 1rem;">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
                         </svg>
                         <p>No onboarding records yet</p>
-                        <span style="opacity: 0.7; font-size: 0.9em;">Create onboarding from interview results to get started</span>
+                        <span style="opacity: 0.7; font-size: 0.9em;">Create onboarding from interview results to get
+                            started</span>
                     </div>
                 </div>
             </div>
@@ -1218,8 +1322,10 @@
                     <div class="modal-header">
                         <h3 id="modal-title">Onboarding Tasks</h3>
                         <button class="btn btn-ghost btn-sm" onclick="closeOnboardingModal()">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20"
+                                height="20">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
                             </svg>
                         </button>
                     </div>
@@ -1233,7 +1339,7 @@
 
 
         <!-- Remove old Stage 7 tab -->
-            </div>
+        </div>
 
     </main>
 
@@ -1245,4 +1351,5 @@
     <script src="/services/stt_service.js?v=1"></script>
     <script src="/app.js?v=6"></script>
 </body>
+
 </html>

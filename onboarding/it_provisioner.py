@@ -23,7 +23,7 @@ ROLE_SOFTWARE_MAP = {
 }
 
 
-def get_candidate_and_role(candidate_id: int) -> dict:
+def get_candidate_and_role(candidate_id: str) -> dict:
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("""
@@ -37,8 +37,16 @@ def get_candidate_and_role(candidate_id: int) -> dict:
     """, (candidate_id,))
     row = cur.fetchone()
     conn.close()
+    if not row:
+        return {
+            "name": f"Candidate {candidate_id}",
+            "personal_email": "",
+            "job_title": "Software Engineer",
+            "department": "engineering",
+            "location": "Remote"
+        }
     return {"name": row[0], "personal_email": row[1],
-            "job_title": row[2], "department": row[3].lower(), "location": row[4]}
+            "job_title": row[2], "department": (row[3] or "engineering").lower(), "location": row[4]}
 
 
 def generate_company_email(name: str, domain: str = "company.com") -> str:
@@ -50,7 +58,7 @@ def assign_software_licenses(department: str) -> list:
     return ROLE_SOFTWARE_MAP.get(department, ROLE_SOFTWARE_MAP['default'])
 
 
-def generate_provisioning_report(candidate_id: int, onboarding_id: int,
+def generate_provisioning_report(candidate_id: str, onboarding_id: str,
                                   company_email: str, licenses: list,
                                   ticket_id: str) -> str:
     """Save provisioning details to a local text file (replaces JIRA/Google API)."""
@@ -73,7 +81,7 @@ def generate_provisioning_report(candidate_id: int, onboarding_id: int,
     return path
 
 
-def save_it_provisioning(onboarding_id: int, company_email: str,
+def save_it_provisioning(onboarding_id: str, company_email: str,
                           ticket: str, licenses: list):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -87,11 +95,11 @@ def save_it_provisioning(onboarding_id: int, company_email: str,
     conn.close()
 
 
-def _provision(onboarding_id: int, candidate_id: int) -> dict:
+def _provision(onboarding_id: str, candidate_id: str) -> dict:
     info = get_candidate_and_role(candidate_id)
     company_email = generate_company_email(info['name'])
     licenses = assign_software_licenses(info['department'])
-    ticket_id = f"IT-{1000 + candidate_id}"
+    ticket_id = f"IT-{candidate_id}"
 
     report_path = generate_provisioning_report(
         candidate_id, onboarding_id, company_email, licenses, ticket_id)
@@ -107,7 +115,7 @@ def _provision(onboarding_id: int, candidate_id: int) -> dict:
             "licenses": licenses, "report": report_path}
 
 
-def provision_it_resources(onboarding_id: int, candidate_id: int | None = None) -> dict:
+def provision_it_resources(onboarding_id: str, candidate_id: str | None = None) -> dict:
     if candidate_id is None:
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
@@ -122,5 +130,5 @@ def provision_it_resources(onboarding_id: int, candidate_id: int | None = None) 
     return _provision(onboarding_id, candidate_id)
 
 
-def provision(onboarding_id: int, candidate_id: int) -> dict:
+def provision(onboarding_id: str, candidate_id: str) -> dict:
     return _provision(onboarding_id, candidate_id)

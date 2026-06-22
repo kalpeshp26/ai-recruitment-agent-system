@@ -19,11 +19,11 @@ class OnboardingCreateRequest(BaseModel):
 
 
 class TaskCompleteRequest(BaseModel):
-    task_id: int
+    task_id: str
 
 
 class DocumentSubmitRequest(BaseModel):
-    onboarding_id: int
+    onboarding_id: str
     doc_type: str
     file_path: str
 
@@ -93,7 +93,7 @@ async def list_onboarding():
 
 
 @router.get("/onboarding/{onboarding_id}/tasks")
-async def get_tasks(onboarding_id: int):
+async def get_tasks(onboarding_id: str):
     """Get tasks for an onboarding record."""
     from onboarding.onboarding_task_manager import get_pending_tasks
     
@@ -134,24 +134,8 @@ async def submit_document(req: DocumentSubmitRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/onboarding/{onboarding_id}/bgv")
-async def trigger_bgv(onboarding_id: int):
-    """Trigger background verification."""
-    from onboarding.bgv_trigger import trigger_bgv as start_bgv
-    
-    try:
-        result = start_bgv(onboarding_id)
-        return {
-            "success": True,
-            "message": "BGV triggered successfully",
-            "result": result
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @router.post("/onboarding/{onboarding_id}/provision")
-async def provision_it(onboarding_id: int):
+async def provision_it(onboarding_id: str):
     """Provision IT resources."""
     from onboarding.it_provisioner import provision_it_resources
     
@@ -166,9 +150,18 @@ async def provision_it(onboarding_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class OnboardingFromInterviewRequest(BaseModel):
+    candidate_id: str
+    job_id: str
+    joining_date: str
+
+
 @router.post("/onboarding/from-interview")
-async def create_onboarding_from_interview(candidate_id: str, job_id: str, joining_date: str):
+async def create_onboarding_from_interview(req: OnboardingFromInterviewRequest):
     """Create onboarding for a candidate who passed their interview with AI-generated tasks."""
+    candidate_id = req.candidate_id
+    job_id = req.job_id
+    joining_date = req.joining_date
     from onboarding.document_collector import create_onboarding_record
     from onboarding.onboarding_task_manager import create_task_checklist
     from shared.db.database import db_session
@@ -177,6 +170,8 @@ async def create_onboarding_from_interview(candidate_id: str, job_id: str, joini
     import uuid
     
     try:
+        candidate_name = ""
+        job_title = ""
         with db_session() as db:
             # Get candidate details
             candidate = db.execute(
@@ -185,6 +180,7 @@ async def create_onboarding_from_interview(candidate_id: str, job_id: str, joini
             
             if not candidate:
                 raise HTTPException(status_code=404, detail="Candidate not found")
+            candidate_name = candidate.name
             
             # Get job details
             job = db.execute(
@@ -193,6 +189,7 @@ async def create_onboarding_from_interview(candidate_id: str, job_id: str, joini
             
             if not job:
                 raise HTTPException(status_code=404, detail="Job not found")
+            job_title = job.title
             
             # Get or create application
             application = db.execute(
@@ -239,8 +236,8 @@ async def create_onboarding_from_interview(candidate_id: str, job_id: str, joini
             "onboarding_id": onboarding_id,
             "offer_id": offer_id,
             "tasks_created": task_count,
-            "candidate_name": candidate.name,
-            "job_title": job.title,
+            "candidate_name": candidate_name,
+            "job_title": job_title,
             "message": "Onboarding created successfully with AI-generated tasks from interview"
         }
     except HTTPException:
@@ -276,5 +273,40 @@ async def clear_mock_onboardings():
             "tasks_deleted": tasks_deleted,
             "message": f"Cleared {onboarding_deleted} onboarding records and {tasks_deleted} tasks"
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/onboarding/{onboarding_id}")
+async def delete_onboarding_record(onboarding_id: str):
+    """Delete a specific onboarding record and its associated tasks."""
+    from config import DATABASE_URL
+    import sqlite3
+    
+    try:
+        db_path = DATABASE_URL.replace("sqlite+aiosqlite:///", "")
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        
+        # Delete tasks first
+        cur.execute("DELETE FROM onboarding_tasks WHERE onboarding_id=?", (onboarding_id,))
+        tasks_deleted = cur.rowcount
+        
+        # Delete onboarding record
+        cur.execute("DELETE FROM onboarding WHERE id=?", (onboarding_id,))
+        onboarding_deleted = cur.rowcount
+        
+        conn.commit()
+        conn.close()
+        
+        if onboarding_deleted == 0:
+            raise HTTPException(status_code=404, detail="Onboarding record not found")
+            
+        return {
+            "success": True,
+            "message": f"Successfully deleted onboarding record {onboarding_id} and {tasks_deleted} tasks"
+        }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

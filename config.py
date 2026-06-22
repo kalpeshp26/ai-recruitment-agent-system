@@ -91,6 +91,11 @@ EMAILJS_TEMPLATE_ID = os.getenv("EMAILJS_TEMPLATE_ID", "")
 EMAILJS_PUBLIC_KEY = os.getenv("EMAILJS_PUBLIC_KEY", "")
 EMAILJS_PRIVATE_KEY = os.getenv("EMAILJS_PRIVATE_KEY", "")
 
+# Stage 4 Outreach specific configurations
+EMAILJS_OUTREACH_SERVICE_ID = os.getenv("EMAILJS_OUTREACH_SERVICE_ID", EMAILJS_SERVICE_ID)
+EMAILJS_OUTREACH_TEMPLATE_ID = os.getenv("EMAILJS_OUTREACH_TEMPLATE_ID", EMAILJS_TEMPLATE_ID)
+EMAILJS_OUTREACH_PUBLIC_KEY = os.getenv("EMAILJS_OUTREACH_PUBLIC_KEY", EMAILJS_PUBLIC_KEY)
+
 # Company Info
 COMPANY_NAME = os.getenv("COMPANY_NAME", "Our Company")
 SCREENING_BASE_URL = os.getenv("SCREENING_BASE_URL", "http://localhost:8001/chatbot")
@@ -104,6 +109,11 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 # SpringVerify BGV
 SPRINGVERIFY_API_KEY = os.getenv("SPRINGVERIFY_API_KEY", "")
 BGV_MOCK = os.getenv("BGV_MOCK", "true").lower() == "true"
+
+# ── Stage 3 Screening Configuration ──────────────────────────────────────────
+SCREENING_RULE_WEIGHT = float(os.getenv("SCREENING_RULE_WEIGHT", "0.6"))
+SCREENING_LLM_WEIGHT = float(os.getenv("SCREENING_LLM_WEIGHT", "0.4"))
+SCREENING_LLM_THRESHOLD = float(os.getenv("SCREENING_LLM_THRESHOLD", "50.0"))
 
 # ── Stage 6 & 7 Configuration (Interview & Evaluation) ────────────────────────
 # Sarvam.ai TTS API

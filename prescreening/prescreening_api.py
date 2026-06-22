@@ -433,7 +433,7 @@ async def start_prescreening_session_custom(req: StartSessionRequest, db: AsyncS
         "success": True,
         "session_id": session.session_id,
         "token": token,
-        "questions": [{ "id": i + 1, "question": q, "minChars": 20 } for i, q in enumerate(questions)],
+        "questions": [{ "id": i + 1, "question": q, "minChars": 100 } for i, q in enumerate(questions)],
         "job_title": job.title,
         "candidate_name": candidate.name
     }
@@ -478,6 +478,16 @@ async def submit_prescreening_answers_custom(req: SubmitAnswersRequest, db: Asyn
     except Exception as e:
         logger.error(f"Sync evaluation failed: {e}")
         raise HTTPException(status_code=500, detail=f"AI evaluation failed: {str(e)}")
+
+    # 6. Re-confirm session status as COMPLETED in the async DB (evaluate_session uses sync db_session)
+    session_refresh = await db.execute(
+        select(ChatbotSession).where(ChatbotSession.session_id == req.session_id).limit(1)
+    )
+    session_obj = session_refresh.scalar_one_or_none()
+    if session_obj and session_obj.status != "COMPLETED":
+        session_obj.status = "COMPLETED"
+        session_obj.completed_at = datetime.utcnow()
+        await db.commit()
         
     # 6. Fetch created interview session ID if passed or borderline
     interview_session_id = summary.get("interview_session_id")

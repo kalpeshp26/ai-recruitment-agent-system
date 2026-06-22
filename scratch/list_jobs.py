@@ -7,9 +7,9 @@ if not os.path.exists(db_path):
 else:
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name, email, status, score FROM candidates")
+    cursor.execute("SELECT id, title, skills, experience_min, qualification, location FROM jobs")
     rows = cursor.fetchall()
-    print("--- Current Candidates in Database ---")
+    print("--- Current Jobs in Database ---")
     for r in rows:
-        print(f"ID: {r[0]} | Name: {r[1]} | Email: {r[2]} | Status: {r[3]} | Score: {r[4]}")
+        print(f"ID: {r[0]} | Title: {r[1]} | Skills: {r[2]} | Exp Min: {r[3]} | Qual: {r[4]} | Loc: {r[5]}")
     conn.close()

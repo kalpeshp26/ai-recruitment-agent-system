@@ -194,6 +194,68 @@ function getOptionalText(id) {
     return value ? value : null;
 }
 
+/**
+ * Render basic Markdown to HTML.
+ * Handles: ## headings, **bold**, bullet lists (- / *), blank-line paragraphs.
+ */
+function renderMarkdown(text) {
+    if (!text) return '';
+    const lines = String(text).split('\n');
+    const html = [];
+    let inList = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const raw = lines[i];
+        const line = raw.trimEnd();
+
+        // Headings
+        if (/^### (.+)/.test(line)) {
+            if (inList) { html.push('</ul>'); inList = false; }
+            html.push(`<h4>${escapeHTML(line.replace(/^### /, ''))}</h4>`);
+            continue;
+        }
+        if (/^## (.+)/.test(line)) {
+            if (inList) { html.push('</ul>'); inList = false; }
+            html.push(`<h3>${escapeHTML(line.replace(/^## /, ''))}</h3>`);
+            continue;
+        }
+        if (/^# (.+)/.test(line)) {
+            if (inList) { html.push('</ul>'); inList = false; }
+            html.push(`<h2>${escapeHTML(line.replace(/^# /, ''))}</h2>`);
+            continue;
+        }
+
+        // Bullet list items (- or *)
+        if (/^[\-\*] (.+)/.test(line)) {
+            if (!inList) { html.push('<ul>'); inList = true; }
+            const content = line.replace(/^[\-\*] /, '');
+            html.push(`<li>${renderInlineMarkdown(content)}</li>`);
+            continue;
+        }
+
+        // Blank line — close list if open
+        if (line.trim() === '') {
+            if (inList) { html.push('</ul>'); inList = false; }
+            html.push('<br>');
+            continue;
+        }
+
+        // Paragraph line
+        if (inList) { html.push('</ul>'); inList = false; }
+        html.push(`<p>${renderInlineMarkdown(line)}</p>`);
+    }
+
+    if (inList) html.push('</ul>');
+    return html.join('');
+}
+
+/** Render bold (**text**) and italic (*text*) inline */
+function renderInlineMarkdown(text) {
+    return escapeHTML(text)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>');
+}
+
 function parseOptionalInt(id) {
     const value = getOptionalText(id);
     return value === null ? null : parseInt(value, 10);
@@ -242,20 +304,52 @@ function renderInterviewResults(items) {
             </div>`;
         return;
     }
-    container.innerHTML = list.map((item) => `
-        <div class="card">
-            <h3>${item.session_id || item.id || 'Interview Session'}</h3>
-            <div class="text-muted">${item.status || item.phase || 'completed'}</div>
-            <div style="margin-top: 0.75rem; display: grid; gap: 0.35rem;">
+    container.innerHTML = list.map((item) => {
+        const scoreVal = item.final_score ?? item.overall_score;
+        const displayScore = scoreVal != null ? (scoreVal > 1 ? scoreVal.toFixed(1) + '%' : (scoreVal * 100).toFixed(1) + '%') : 'n/a';
+        
+        const technicalVal = item.technical_score;
+        const displayTech = technicalVal != null ? (technicalVal > 1 ? technicalVal.toFixed(1) + '%' : (technicalVal * 100).toFixed(1) + '%') : 'n/a';
+        
+        const communicationVal = item.communication_score;
+        const displayComm = communicationVal != null ? (communicationVal > 1 ? communicationVal.toFixed(1) + '%' : (communicationVal * 100).toFixed(1) + '%') : 'n/a';
+
+        return `
+        <div class="card" style="margin-bottom: 1rem; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <h3 style="margin: 0;">${escapeHTML(item.candidate_name || 'Interview Session')}</h3>
+                <span class="status-tag success">${escapeHTML(item.status || 'completed')}</span>
+            </div>
+            <div class="text-muted" style="margin-bottom: 0.75rem;">Job Role: ${escapeHTML(item.job_title || 'Position TBD')}</div>
+            <div style="display: grid; gap: 0.35rem; font-size: 0.95rem;">
                 ${renderKeyValueList([
-                    ['Score', item.final_score ?? item.overall_score ?? 'n/a'],
-                    ['Technical', item.technical_score ?? 'n/a'],
-                    ['Communication', item.communication_score ?? 'n/a'],
-                    ['Summary', item.summary ?? item.feedback_summary ?? 'n/a'],
+                    ['Overall Score', displayScore],
+                    ['Technical Score', displayTech],
+                    ['Communication Score', displayComm],
+                    ['Recommendation', item.recommendation ?? 'n/a'],
+                    ['Notes', item.summary ?? item.feedback_summary ?? 'n/a'],
                 ])}
             </div>
-        </div>`).join('');
+            <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+                <button class="btn btn-secondary btn-sm" onclick="downloadInterviewPDF('${escapeHTML(item.session_id)}')" title="Download Scorecard PDF" style="display: flex; align-items: center; gap: 4px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download PDF Report
+                </button>
+            </div>
+        </div>`;
+    }).join('');
 }
+
+function downloadInterviewPDF(sessionId) {
+    if (!sessionId) {
+        showToast('Invalid session ID', 'error');
+        return;
+    }
+    window.location.href = `${API_BASE}/interview/sessions/${sessionId}/export/pdf`;
+}
+window.downloadInterviewPDF = downloadInterviewPDF;
 
 async function loadInterviewResults() {
     try {
@@ -275,12 +369,16 @@ async function loadInterviewResults() {
         // Calculate average score
         const completed = sessions.filter(s => s.final_score != null);
         const avgScore = completed.length > 0 
-            ? (completed.reduce((sum, s) => sum + s.final_score, 0) / completed.length).toFixed(1)
-            : '0.0';
+            ? ((completed.reduce((sum, s) => sum + s.final_score, 0) / completed.length) * 100).toFixed(1) + '%'
+            : '0.0%';
         setText('stat-avg-score', avgScore);
         
         // Render interview cards
         renderInterviewCards(sessions);
+        
+        // Render completed scorecards in results list
+        const completedSessions = sessions.filter(s => s.status === 'COMPLETED');
+        renderInterviewResults(completedSessions);
         
         setStatus('Interview data loaded', 'success');
         return sessions;
@@ -333,7 +431,7 @@ function renderInterviewCards(sessions) {
                 </div>
                 <div class="job-card-section">
                     <span>SCORE</span>
-                    <strong>${session.final_score != null ? session.final_score.toFixed(2) : 'Not completed'}</strong>
+                    <strong>${session.final_score != null ? (session.final_score > 1 ? session.final_score.toFixed(1) + '%' : (session.final_score * 100).toFixed(1) + '%') : 'Not completed'}</strong>
                 </div>
             </div>
             <div class="job-card-footer">
@@ -804,6 +902,22 @@ function filterCandidates() {
             const statusClass = item.status === 'shortlisted' ? 'success' : item.status === 'rejected' ? 'error' : 'info';
             const statusLabel = item.status === 'shortlisted' ? 'SHORTLISTED' : item.status === 'rejected' ? 'REJECTED' : (item.status || 'NEW').toUpperCase();
             
+            const job = state.jobs.find(j => j.id === item.job_id);
+            const jobTitle = job ? (job.title || job.name) : (item.job_id || 'No Job Assigned');
+            
+            let scoreDisplay = item.score ?? 'Not scored';
+            if (item.score === null || item.score === undefined) {
+                if (item.is_duplicate) {
+                    scoreDisplay = 'Not scored (Duplicate)';
+                } else if (!item.job_id) {
+                    scoreDisplay = 'Not scored (No Job)';
+                } else if (item.rejection_reason && item.rejection_reason.toLowerCase().includes('no job_id')) {
+                    scoreDisplay = 'Not scored (No Job)';
+                } else if (item.rejection_reason && item.rejection_reason.toLowerCase().includes('duplicate')) {
+                    scoreDisplay = 'Not scored (Duplicate)';
+                }
+            }
+            
             return `
             <div class="job-card">
                 <div class="job-card-header">
@@ -813,6 +927,9 @@ function filterCandidates() {
                     </div>
                     <span class="status-tag ${statusClass}">${statusLabel}</span>
                 </div>
+                <div style="margin-top: 0.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0 4px;">
+                    <span class="status-tag info" style="font-size: 0.68rem; padding: 2px 8px;">Job: ${escapeHTML(jobTitle)}</span>
+                </div>
                 <div class="job-card-sections">
                     <div class="job-card-section">
                         <span>SKILLS</span>
@@ -820,7 +937,7 @@ function filterCandidates() {
                     </div>
                     <div class="job-card-section">
                         <span>SCORE</span>
-                        <strong>${item.score ?? 'Not scored'}</strong>
+                        <strong>${scoreDisplay}</strong>
                     </div>
                     <div class="job-card-section">
                         <span>EXPERIENCE</span>
@@ -879,7 +996,14 @@ function filterOutreachCandidates() {
                 <div class="job-card-footer">
                     <span><strong>Location:</strong> ${escapeHTML(item.location || 'N/A')}</span>
                     <div class="job-card-actions">
-                        ${!emailSent ? `<button class="btn btn-primary btn-sm" onclick="sendOutreach('${escapeHTML(item.id)}','${escapeHTML(item.job_id)}')">Send Email</button>` : `<span style="color: var(--color-success); font-size: 0.9em;">✓ Email Sent</span>`}
+                        ${!emailSent
+                            ? `<button class="btn btn-primary btn-sm" onclick="sendOutreach('${escapeHTML(item.id)}','${escapeHTML(item.job_id)}')">Send Email</button>`
+                            : `<span style="color: var(--color-success); font-size: 0.9em;">✓ Email Sent</span>
+                               <button class="btn btn-ghost btn-sm" onclick="resendOutreach('${escapeHTML(item.id)}','${escapeHTML(item.job_id)}')" title="Resend outreach email">
+                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="margin-right:4px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                 Resend Email
+                               </button>`
+                        }
                     </div>
                 </div>
             </div>`;
@@ -1080,7 +1204,7 @@ async function loadOnboarding() {
                     <span><strong>Onboarding ID:</strong> ${escapeHTML(item.id)}</span>
                     <div class="job-card-actions">
                         <button class="btn btn-ghost btn-sm" onclick="displayTasksInPanel('${escapeHTML(item.id)}')">View Tasks</button>
-                        ${item.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="triggerBGV('${escapeHTML(item.id)}')">Trigger BGV</button>` : ''}
+                        <button class="btn btn-ghost btn-sm job-delete-btn" onclick="deleteOnboarding('${escapeHTML(item.id)}', '${escapeHTML(item.candidate_name || '')}')">Delete</button>
                     </div>
                 </div>
             </div>`;
@@ -1159,7 +1283,7 @@ async function createJob(event) {
                     <div><strong>Job ID:</strong> ${jobId}</div>
                     <div><strong>Title:</strong> ${title}</div>
                     <div><strong>Description:</strong></div>
-                    <div class="markdown-content job-description-content">${response.description || 'No description returned.'}</div>
+                    <div class="markdown-content job-description-content">${renderMarkdown(response.description || 'No description returned.')}</div>
                 </div>`;
         }
 
@@ -1377,6 +1501,22 @@ async function sendOutreach(candidateId, jobId) {
     }
 }
 
+async function resendOutreach(candidateId, jobId) {
+    try {
+        showToast('Resending outreach email...', 'info');
+        const response = await apiRequest('/outreach/resend', {
+            method: 'POST',
+            body: JSON.stringify({ candidate_id: candidateId, job_id: jobId }),
+        }, API_BASE);
+        showToast(response.message || 'Email resent successfully', 'success');
+        await loadOutreachData();
+        return response;
+    } catch (error) {
+        showToast(`Resend failed: ${error.message}`, 'error');
+        throw error;
+    }
+}
+
 // Load outreach data
 async function loadOutreachData() {
     try {
@@ -1413,6 +1553,26 @@ async function loadPrescreeningData() {
         // Fetch prescreening sessions to display in table
         const sessions = await apiRequest('/prescreening/sessions', { method: 'GET' }, API_BASE);
         state.stageData.prescreeningSessions = sessions;
+
+        // ── Update analytics stat cards ──────────────────────────────────
+        const totalSessions = sessions.length;
+        const completedSessions = sessions.filter(s => s.status === 'COMPLETED').length;
+        const passedSessions = sessions.filter(s => s.verdict === 'PASS' || s.verdict === 'BORDERLINE').length;
+        const scoredSessions = sessions.filter(s => s.avg_score != null);
+        const avgScore = scoredSessions.length > 0
+            ? (scoredSessions.reduce((sum, s) => sum + s.avg_score, 0) / scoredSessions.length).toFixed(1)
+            : '0.0';
+
+        setText('stat-total-sessions', totalSessions);
+        setText('stat-sessions-completed', completedSessions);
+        setText('stat-sessions-passed', passedSessions);
+        setText('stat-avg-prescreening-score', avgScore);
+
+        // Mini header stats
+        setText('prescreening-total', totalSessions);
+        setText('prescreening-completed', completedSessions);
+        setText('prescreening-passed', passedSessions);
+        // ─────────────────────────────────────────────────────────────────
         
         // Render sessions table
         const tableBody = $('prescreening-table-body');
@@ -1532,8 +1692,7 @@ async function onPrescreeningCandidateChange() {
                             style="width: 100%; min-height: 100px; padding: 12px; background: var(--bg-surface); border: 2px solid var(--border); border-radius: 6px; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; resize: vertical;"
                             onkeyup="updateCharCount(${q.id}, ${q.minChars})"
                         ></textarea>
-                        <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
-                            <span id="char-count-${q.id}">0 / ${q.minChars} characters</span>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
                             <span id="status-${q.id}"></span>
                         </div>
                     </div>
@@ -1565,13 +1724,11 @@ async function onPrescreeningCandidateChange() {
 // Update character count for questions
 function updateCharCount(questionId, minChars) {
     const textarea = $(`demo-answer-${questionId}`);
-    const countSpan = $(`char-count-${questionId}`);
     const statusSpan = $(`status-${questionId}`);
     
-    if (!textarea || !countSpan) return;
+    if (!textarea) return;
     
     const length = textarea.value.length;
-    countSpan.textContent = `${length} / ${minChars} characters`;
     
     if (statusSpan) {
         if (length >= minChars) {
@@ -1595,7 +1752,7 @@ async function submitCustomPrescreening() {
     
     for (let i = 1; i <= 6; i++) {
         const textarea = $(`demo-answer-${i}`);
-        if (!textarea || textarea.value.length < 20) {
+        if (!textarea || textarea.value.length < 100) {
             allAnswered = false;
             break;
         }
@@ -1607,7 +1764,7 @@ async function submitCustomPrescreening() {
     }
     
     if (!allAnswered) {
-        showToast('Please answer all questions with at least 20 characters', 'error');
+        showToast('Please answer all questions with at least 100 characters', 'error');
         return;
     }
     
@@ -1958,6 +2115,16 @@ async function loadEvaluationResults() {
                                 </svg>
                                 View Details
                             </button>
+                            <button class="btn btn-ghost btn-sm" onclick="downloadInterviewPDF('${escapeHTML(evaluation.session_id)}')" title="Download PDF Report">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10 9 9 9 8 9"/>
+                                </svg>
+                                PDF
+                            </button>
                             <button class="btn btn-ghost btn-sm" onclick="downloadEvaluationReport('${escapeHTML(evaluation.id)}')" title="Download JSON Report">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
@@ -1979,7 +2146,67 @@ async function loadEvaluationResults() {
 }
 
 async function viewEvaluationDetails(evaluationId) {
-    showToast('Detailed view coming soon', 'info');
+    try {
+        const report = await apiRequest(`/evaluation/report/${evaluationId}`, { method: 'GET' }, API_BASE);
+        const output = report.interview_output || {};
+        const recommendation = report.report?.recommendation || output.recommendation || 'n/a';
+        const recClass = ['STRONG_HIRE', 'HIRE'].includes(recommendation.toUpperCase()) ? 'success'
+            : recommendation.toUpperCase() === 'HOLD' ? 'warning' : 'error';
+        const finalPct = report.report?.score_percent ?? output.final_score_percent;
+        const riskFlags = (report.report?.risk_flags || []).filter(Boolean);
+
+        // Build a modal/toast-style summary
+        const summaryHTML = `
+            <div style="max-width:640px;margin:0 auto;display:grid;gap:1rem;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                    <div style="padding:.9rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;">
+                        <div style="font-size:0.72rem;text-transform:uppercase;opacity:.55;margin-bottom:.3rem;">Candidate</div>
+                        <div style="font-weight:600;">${escapeHTML(report.candidate?.name || 'Unknown')}</div>
+                        <div style="font-size:0.82rem;opacity:.65;">${escapeHTML(report.candidate?.email || 'n/a')}</div>
+                    </div>
+                    <div style="padding:.9rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;">
+                        <div style="font-size:0.72rem;text-transform:uppercase;opacity:.55;margin-bottom:.3rem;">Position</div>
+                        <div style="font-weight:600;">${escapeHTML(report.job?.title || 'Unknown')}</div>
+                        <div style="font-size:0.82rem;opacity:.65;">Phase: ${escapeHTML(output.phase || 'n/a')}</div>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem;">
+                    <div style="padding:.9rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;text-align:center;">
+                        <div style="font-size:1.6rem;font-weight:700;color:var(--accent-blue);">${finalPct != null ? finalPct + '%' : 'n/a'}</div>
+                        <div style="font-size:0.72rem;opacity:.55;">Overall Score</div>
+                    </div>
+                    <div style="padding:.9rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;text-align:center;">
+                        <div style="font-size:1.6rem;font-weight:700;color:var(--accent-purple);">${formatScore(output.content_score)}</div>
+                        <div style="font-size:0.72rem;opacity:.55;">Technical</div>
+                    </div>
+                    <div style="padding:.9rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;text-align:center;">
+                        <div style="font-size:1.6rem;font-weight:700;color:var(--accent-green);">${formatScore(output.behavior_score)}</div>
+                        <div style="font-size:0.72rem;opacity:.55;">Behavioral</div>
+                    </div>
+                    <div style="padding:.9rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;text-align:center;">
+                        <span class="status-tag ${recClass}" style="font-size:0.85rem;">${escapeHTML(recommendation.replace('_', ' '))}</span>
+                        <div style="font-size:0.72rem;opacity:.55;margin-top:.4rem;">Recommendation</div>
+                    </div>
+                </div>
+                ${riskFlags.length ? `<div style="padding:.7rem 1rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;">
+                    <div style="font-weight:600;font-size:0.82rem;color:#ef4444;margin-bottom:.3rem;">⚠ Risk Flags</div>
+                    ${riskFlags.map(f => `<div style="font-size:0.82rem;">• ${escapeHTML(f)}</div>`).join('')}
+                </div>` : ''}
+            </div>`;
+
+        // Try to show in the detail panel if it exists; otherwise alert
+        const detail = $('evaluation-detail-content');
+        if (detail) {
+            detail.innerHTML = summaryHTML;
+            show('evaluation-detail-panel');
+            $('evaluation-detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            showToast(`${report.candidate?.name || 'Candidate'} — Score: ${finalPct != null ? finalPct + '%' : 'n/a'} — ${recommendation}`, 'info');
+        }
+    } catch (error) {
+        console.error('Failed to load evaluation report:', error);
+        showToast(`Failed to load report: ${error.message}`, 'error');
+    }
 }
 
 async function downloadEvaluationReport(evaluationId) {
@@ -2679,13 +2906,13 @@ async function submitInterviewData(event) {
     }
 
     if (finalScore === null || finalScore < 0 || finalScore > 1) {
-        showToast('Final score must be between 0.0 and 1.0', 'error');
+        showToast('Final score must be between 0.0 and 1.0 (e.g. 0.75 = 75%)', 'error');
         return;
     }
 
     if ((contentScore !== null && (contentScore < 0 || contentScore > 1)) ||
         (behaviorScore !== null && (behaviorScore < 0 || behaviorScore > 1))) {
-        showToast('Content and behavior scores must be between 0.0 and 1.0', 'error');
+        showToast('Content and behavior scores must be between 0.0 and 1.0 (e.g. 0.85 = 85%)', 'error');
         return;
     }
 
@@ -2797,6 +3024,9 @@ async function loadEvaluationResults() {
                             <button class="btn btn-ghost btn-sm" onclick="viewEvaluationDetails('${escapeHTML(evaluation.id)}')" title="View Full Report">
                                 View Details
                             </button>
+                            <button class="btn btn-ghost btn-sm" onclick="downloadInterviewPDF('${escapeHTML(evaluation.session_id)}')" title="Download PDF Report">
+                                PDF
+                            </button>
                             <button class="btn btn-ghost btn-sm" onclick="downloadEvaluationReport('${escapeHTML(evaluation.id)}')" title="Download JSON Report">
                                 JSON
                             </button>
@@ -2818,20 +3048,54 @@ async function viewEvaluationDetails(evaluationId) {
         const detail = $('evaluation-detail-content');
         if (!detail) return;
 
+        const recommendation = report.report?.recommendation || output.recommendation || 'n/a';
+        const recClass = ['STRONG_HIRE', 'HIRE'].includes(recommendation.toUpperCase()) ? 'success'
+            : recommendation.toUpperCase() === 'HOLD' ? 'warning' : 'error';
+        const finalPct = report.report?.score_percent ?? output.final_score_percent;
+        const riskFlags = (report.report?.risk_flags || []).filter(Boolean);
+
         detail.innerHTML = `
-            <div class="job-card-sections">
-                <div class="job-card-section"><span>Candidate</span><strong>${escapeHTML(report.candidate?.name || 'Unknown')}</strong></div>
-                <div class="job-card-section"><span>Email</span><strong>${escapeHTML(report.candidate?.email || 'n/a')}</strong></div>
-                <div class="job-card-section"><span>Job</span><strong>${escapeHTML(report.job?.title || 'Unknown')}</strong></div>
-                <div class="job-card-section"><span>Recommendation</span><strong>${escapeHTML(report.report?.recommendation || output.recommendation || 'n/a')}</strong></div>
-                <div class="job-card-section"><span>Score</span><strong>${escapeHTML(report.report?.score_percent ?? output.final_score_percent ?? 'n/a')}%</strong></div>
-                <div class="job-card-section"><span>Content</span><strong>${formatScore(output.content_score)}</strong></div>
-                <div class="job-card-section"><span>Behavior</span><strong>${formatScore(output.behavior_score)}</strong></div>
-                <div class="job-card-section"><span>Phase</span><strong>${escapeHTML(output.phase || 'n/a')}</strong></div>
-                <div class="job-card-section"><span>Session</span><strong>${escapeHTML(output.session_id || 'n/a')}</strong></div>
+            <div style="display:grid;gap:1.25rem;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                    <div style="padding:1rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;">
+                        <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:.06em;opacity:.6;margin-bottom:.4rem;">Candidate</div>
+                        <div style="font-weight:600;font-size:1.05rem;">${escapeHTML(report.candidate?.name || 'Unknown')}</div>
+                        <div style="font-size:0.85rem;opacity:.7;margin-top:.2rem;">${escapeHTML(report.candidate?.email || 'n/a')}</div>
+                    </div>
+                    <div style="padding:1rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;">
+                        <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:.06em;opacity:.6;margin-bottom:.4rem;">Position</div>
+                        <div style="font-weight:600;font-size:1.05rem;">${escapeHTML(report.job?.title || 'Unknown')}</div>
+                        <div style="font-size:0.85rem;opacity:.7;margin-top:.2rem;">Phase: ${escapeHTML(output.phase || 'n/a')}</div>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:0.75rem;">
+                    <div style="padding:1rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:700;color:var(--accent-blue);">${finalPct != null ? finalPct + '%' : 'n/a'}</div>
+                        <div style="font-size:0.75rem;opacity:.6;margin-top:.25rem;">Overall Score</div>
+                    </div>
+                    <div style="padding:1rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:700;color:var(--accent-purple);">${formatScore(output.content_score)}</div>
+                        <div style="font-size:0.75rem;opacity:.6;margin-top:.25rem;">Technical / Content</div>
+                    </div>
+                    <div style="padding:1rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:700;color:var(--accent-green);">${formatScore(output.behavior_score)}</div>
+                        <div style="font-size:0.75rem;opacity:.6;margin-top:.25rem;">Behavioral</div>
+                    </div>
+                    <div style="padding:1rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;text-align:center;">
+                        <span class="status-tag ${recClass}" style="font-size:0.9rem;padding:.4rem .9rem;">${escapeHTML(recommendation.replace('_', ' '))}</span>
+                        <div style="font-size:0.75rem;opacity:.6;margin-top:.5rem;">Recommendation</div>
+                    </div>
+                </div>
+
+                ${riskFlags.length ? `
+                <div style="padding:.75rem 1rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;">
+                    <div style="font-weight:600;font-size:0.85rem;color:#ef4444;margin-bottom:.4rem;">⚠ Risk Flags</div>
+                    ${riskFlags.map(f => `<div style="font-size:0.85rem;opacity:.85;">• ${escapeHTML(f)}</div>`).join('')}
+                </div>` : ''}
+
+                <div style="font-size:0.8rem;opacity:.5;text-align:right;">Session: ${escapeHTML(output.session_id || 'n/a')} &nbsp;|&nbsp; Evaluation ID: ${escapeHTML(report.evaluation_id || 'n/a')}</div>
             </div>
-            <h4 style="margin-top: 1rem;">Raw Report</h4>
-            <pre style="white-space: pre-wrap; overflow:auto; background: var(--bg-surface); padding: 1rem; border-radius: 8px;">${escapeHTML(JSON.stringify(report, null, 2))}</pre>
         `;
         show('evaluation-detail-panel');
         $('evaluation-detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2974,6 +3238,7 @@ window.loadScreeningData = loadScreeningData;
 window.loadOutreachData = loadOutreachData;
 window.loadPrescreeningData = loadPrescreeningData;
 window.sendOutreach = sendOutreach;
+window.resendOutreach = resendOutreach;
 window.filterCandidates = filterCandidates;
 window.filterOutreachCandidates = filterOutreachCandidates;
 window.filterPrescreeningSessions = filterPrescreeningSessions;
@@ -3267,24 +3532,12 @@ async function displayTasksInPanel(onboardingId) {
     }
 }
 
-async function triggerBGV(onboardingId) {
-    try {
-        setStatus('Triggering BGV...', 'info');
-        const response = await apiRequest(`/onboarding/${onboardingId}/bgv`, { method: 'POST' }, API_BASE);
-        setStatus(response.message || 'BGV triggered!', 'success');
-        await loadOnboarding();
-        return response;
-    } catch (error) {
-        setStatus(`Trigger BGV failed: ${error.message}`, 'error');
-        return null;
-    }
-}
 
 // Make functions available globally
 window.acceptOffer = acceptOffer;
 window.dispatchOffer = dispatchOffer;
 window.viewOnboardingTasks = viewOnboardingTasks;
-window.triggerBGV = triggerBGV;
+
 window.closeOnboardingModal = closeOnboardingModal;
 window.loadCompletedCandidates = loadCompletedCandidates;
 window.onCandidateSelected = onCandidateSelected;
@@ -3343,3 +3596,25 @@ async function resendInterviewEmail(candidateId, sessionId) {
 window.launchInterview = launchInterview;
 window.copyInterviewLink = copyInterviewLink;
 window.resendInterviewEmail = resendInterviewEmail;
+
+async function deleteOnboarding(onboardingId, candidateName = '') {
+    if (!onboardingId) return;
+    const confirmed = window.confirm(`Delete onboarding record for "${candidateName || onboardingId}"? This will remove the onboarding tasks too.`);
+    if (!confirmed) return;
+    
+    try {
+        setStatus('Deleting onboarding record...', 'info');
+        const response = await apiRequest(`/onboarding/${onboardingId}`, {
+            method: 'DELETE'
+        }, API_BASE);
+        setStatus(response.message || 'Onboarding deleted', 'success');
+        
+        closeTasksPanel();
+        await loadOnboarding();
+        return response;
+    } catch (error) {
+        setStatus(`Delete failed: ${error.message}`, 'error');
+        throw error;
+    }
+}
+window.deleteOnboarding = deleteOnboarding;

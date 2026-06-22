@@ -40,7 +40,7 @@ DEFAULT_TASK_CHECKLISTS = {
 }
 
 
-def create_task_checklist(onboarding_id: int, candidate_id: int, joining_date: str, offer_id: str = None, job_id: str = None) -> int:
+def create_task_checklist(onboarding_id: str, candidate_id: str, joining_date: str, offer_id: str = None, job_id: str = None) -> int:
     import uuid
     joining = datetime.strptime(joining_date, "%Y-%m-%d")
     offsets = {"day_1": 0, "week_1": 7, "month_1": 30}
@@ -142,7 +142,7 @@ def schedule_30_day_checkin(candidate_email: str, candidate_name: str, joining_d
     print(f"[onboarding_task_manager] 30-day check-in scheduled for {checkin}")
 
 
-def mark_task_complete(task_id: int):
+def mark_task_complete(task_id: str):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("UPDATE onboarding_tasks SET status='completed', completed_at=datetime('now') WHERE id=?",
@@ -151,13 +151,14 @@ def mark_task_complete(task_id: int):
     conn.close()
 
 
-def get_pending_tasks(onboarding_id: int) -> list:
+def get_pending_tasks(onboarding_id: str) -> list:
+    """Return ALL tasks for an onboarding record (pending and completed)."""
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("""
-        SELECT id, task_name, phase, due_date FROM onboarding_tasks
-        WHERE onboarding_id=? AND status='pending' ORDER BY due_date
+        SELECT id, task_name, phase, due_date, status FROM onboarding_tasks
+        WHERE onboarding_id=? ORDER BY phase, due_date
     """, (onboarding_id,))
     rows = cur.fetchall()
     conn.close()
-    return [{"id": r[0], "task": r[1], "phase": r[2], "due_date": r[3]} for r in rows]
+    return [{"id": r[0], "task": r[1], "phase": r[2], "due_date": r[3], "status": r[4] or "pending"} for r in rows]

@@ -14,7 +14,7 @@ from config import DATABASE_URL, DOCS_DIR
 DB_PATH = DATABASE_URL.replace("sqlite+aiosqlite:///", "")
 
 
-def get_candidate_details(candidate_id: int) -> dict:
+def get_candidate_details(candidate_id: str) -> dict:
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("""
@@ -39,7 +39,7 @@ def get_candidate_details(candidate_id: int) -> dict:
     }
 
 
-def get_submitted_documents(onboarding_id: int) -> dict:
+def get_submitted_documents(onboarding_id: str) -> dict:
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("SELECT documents_submitted FROM onboarding WHERE id=?", (onboarding_id,))
@@ -71,7 +71,7 @@ def simulate_bgv_check(candidate: dict, documents: dict) -> dict:
     return {"status": status, "discrepancies": discrepancies, "request_id": "BGV_SIM_LOCAL"}
 
 
-def save_bgv_result(onboarding_id: int, result: dict):
+def save_bgv_result(onboarding_id: str, result: dict):
     status = result['status']
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -91,7 +91,7 @@ def save_bgv_result(onboarding_id: int, result: dict):
     conn.close()
 
 
-def handle_bgv_result(onboarding_id: int, result: dict):
+def handle_bgv_result(onboarding_id: str, result: dict):
     status = result.get('status')
     discrepancies = result.get('discrepancies', [])
     conn = sqlite3.connect(DB_PATH)
@@ -114,7 +114,7 @@ def handle_bgv_result(onboarding_id: int, result: dict):
         print(f"[bgv_trigger] ✅ BGV clear for onboarding {onboarding_id}")
 
 
-def trigger_bgv(onboarding_id: int, candidate_id: int | None = None) -> dict:
+def trigger_bgv(onboarding_id: str, candidate_id: str | None = None) -> dict:
     if candidate_id is None:
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()

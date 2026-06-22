@@ -4,9 +4,8 @@ Autonomous agent that listens to offer acceptance events and automatically:
 1. Creates onboarding records
 2. Generates task checklists (Day 1, Week 1, Month 1)
 3. Sends document collection emails
-4. Triggers BGV checks
-5. Provisions IT resources
-6. Publishes completion events for Stage 10 (Analytics)
+4. Provisions IT resources
+5. Publishes completion events for Stage 10 (Analytics)
 """
 import asyncio
 from shared.queue.event_bus import event_bus
@@ -18,14 +17,13 @@ from onboarding.document_collector import (
     create_onboarding_record, send_document_checklist_email,
     get_upload_path, REQUIRED_DOCUMENTS, DOCUMENT_LABELS
 )
-from onboarding.bgv_trigger import trigger_bgv
 from onboarding.it_provisioner import provision_it_resources
 
 
 async def process_onboarding_started_event(event_data: dict):
     """
     Triggered when: onboarding.started event is published (after offer acceptance)
-    Action: Create onboarding record, send checklists, trigger BGV
+    Action: Create onboarding record, send checklists, provision IT resources
     """
     try:
         offer_id = event_data.get("offer_id")
@@ -64,45 +62,25 @@ async def process_onboarding_started_event(event_data: dict):
             send_document_checklist_email(candidate_email, candidate_name, upload_paths)
             print(f"[Onboarding Agent] Sent document checklist to {candidate_email}")
         
-        # Step 5: Trigger BGV check
-        bgv_result = trigger_bgv(onboarding_id)
-        print(f"[Onboarding Agent] BGV triggered: {bgv_result.get('status')}")
+        # Step 5: Provision IT resources directly
+        it_result = provision_it_resources(onboarding_id)
+        print(f"[Onboarding Agent] IT resources provisioned: {it_result}")
         
-        # Publish BGV event
-        if bgv_result.get("status") == "clear":
-            await event_bus.publish(
-                EventTopics.BGV_CLEARED,
-                {
-                    "onboarding_id": onboarding_id,
-                    "candidate_id": candidate_id,
-                    "bgv_result": bgv_result,
-                },
-                agent="onboarding_agent"
-            )
+        # Publish onboarding completion event
+        await event_bus.publish(
+            EventTopics.ONBOARDING_COMPLETED,
+            {
+                "onboarding_id": onboarding_id,
+                "candidate_id": candidate_id,
+                "job_id": job_id,
+                "joining_date": joining_date,
+                "tasks_created": task_count,
+                "it_provisioned": True,
+            },
+            agent="onboarding_agent"
+        )
         
-        # Step 6: Provision IT resources (after BGV clears)
-        if bgv_result.get("status") == "clear":
-            it_result = provision_it_resources(onboarding_id)
-            print(f"[Onboarding Agent] IT resources provisioned: {it_result}")
-            
-            # Publish onboarding completion event
-            await event_bus.publish(
-                EventTopics.ONBOARDING_COMPLETED,
-                {
-                    "onboarding_id": onboarding_id,
-                    "candidate_id": candidate_id,
-                    "job_id": job_id,
-                    "joining_date": joining_date,
-                    "tasks_created": task_count,
-                    "bgv_status": bgv_result.get("status"),
-                    "it_provisioned": True,
-                },
-                agent="onboarding_agent"
-            )
-            
-            print(f"[Onboarding Agent] [SUCCESS] Onboarding completed for candidate {candidate_id}")
-        else:
-            print(f"[Onboarding Agent] [WARNING] BGV not cleared. IT provisioning pending.")
+        print(f"[Onboarding Agent] [SUCCESS] Onboarding completed for candidate {candidate_id}")
         
     except Exception as e:
         print(f"[Onboarding Agent] [ERROR] Error processing onboarding: {e}")

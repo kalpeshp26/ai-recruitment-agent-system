@@ -292,11 +292,6 @@
                         <span class="pipeline-num">14</span>
                         <span class="pipeline-label">Answer Evaluation</span>
                     </div>
-                    <div class="pipeline-arrow">→</div>
-                    <div class="pipeline-node stage5">
-                        <span class="pipeline-num">15</span>
-                        <span class="pipeline-label">BGV Check</span>
-                    </div>
                 </div>
                 <div class="pipeline-divider">
                     <span>5: Prescreening</span>
@@ -891,10 +886,7 @@
                         <span class="stat-mini-value" id="prescreening-passed">0</span>
                         <span class="stat-mini-label">Passed</span>
                     </div>
-                    <div class="stat-mini">
-                        <span class="stat-mini-value" id="bgv-cleared">0</span>
-                        <span class="stat-mini-label">BGV Cleared</span>
-                    </div>
+
                 </div>
             </div>
 
@@ -1530,25 +1522,6 @@
                 </div>
             </div>
 
-            <!-- Export Options -->
-            <div class="panel">
-                <div class="panel-header">
-                    <h2>Export Reports</h2>
-                </div>
-                <div style="display: flex; gap: 1rem;">
-                    <button class="btn btn-primary" onclick="exportAnalyticsCSV()" style="flex: 1;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Export CSV
-                    </button>
-                    <button class="btn btn-primary" onclick="exportAnalyticsPDF()" style="flex: 1;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Export PDF
-                    </button>
-                </div>
             </div>
         </section>
 

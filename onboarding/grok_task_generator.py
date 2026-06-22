@@ -11,8 +11,8 @@ import requests
 logger = logging.getLogger(__name__)
 
 # Grok API configuration
-GROK_API_KEY = os.getenv("GROK_API_KEY", "")
-GROK_API_URL = "https://api.x.ai/v1/chat/completions"
+GROK_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROK_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 
 def generate_onboarding_tasks(job_title: str, job_description: str, department: str, 
@@ -65,7 +65,7 @@ Return the response in this exact JSON format:
         }
         
         payload = {
-            "model": "grok-beta",
+            "model": "llama-3.3-70b-versatile",
             "messages": [
                 {
                     "role": "system",

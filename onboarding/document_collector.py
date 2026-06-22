@@ -30,7 +30,7 @@ DOCUMENT_LABELS = {
 }
 
 
-def get_upload_path(candidate_id: int, doc_type: str) -> str:
+def get_upload_path(candidate_id: str, doc_type: str) -> str:
     """Local folder path for document upload (replaces S3 pre-signed URL)."""
     folder = os.path.join(DOCS_DIR, str(candidate_id))
     os.makedirs(folder, exist_ok=True)
@@ -78,7 +78,7 @@ HR Team"""
         server.send_message(msg)
 
 
-def mark_document_submitted(onboarding_id: int, doc_type: str, file_path: str):
+def mark_document_submitted(onboarding_id: str, doc_type: str, file_path: str):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("SELECT documents_submitted, documents_pending FROM onboarding WHERE id=?",
@@ -95,7 +95,7 @@ def mark_document_submitted(onboarding_id: int, doc_type: str, file_path: str):
     conn.close()
 
 
-def check_document_completeness(onboarding_id: int) -> bool:
+def check_document_completeness(onboarding_id: str) -> bool:
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("SELECT documents_pending FROM onboarding WHERE id=?", (onboarding_id,))
@@ -104,7 +104,7 @@ def check_document_completeness(onboarding_id: int) -> bool:
     return len(pending) == 0
 
 
-def get_pending_documents(onboarding_id: int) -> list:
+def get_pending_documents(onboarding_id: str) -> list:
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("SELECT documents_pending FROM onboarding WHERE id=?", (onboarding_id,))

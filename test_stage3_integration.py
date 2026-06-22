@@ -80,10 +80,10 @@ async def test_stage3_integration():
         candidate_ids = []
         for candidate_data in candidates_data:
             # Manually insert candidate (simulating Stage 2 output)
-            response = await client.post(f"{BASE_URL}/screening/test/add-candidate", json=candidate_data)
+            response = await client.post(f"{BASE_URL}/sourcing/add-candidate", json=candidate_data)
             if response.status_code == 200:
                 candidate = response.json()
-                candidate_ids.append(candidate["id"])
+                candidate_ids.append(candidate["candidate_id"])
                 print(f"✅ Added candidate: {candidate_data['name']}")
             else:
                 print(f"❌ Failed to add candidate {candidate_data['name']}: {response.text}")

@@ -159,6 +159,66 @@ async def send_outreach(request: OutreachRequest, db: AsyncSession = Depends(get
     }
 
 
+@router.post("/resend")
+async def resend_outreach(request: OutreachRequest, db: AsyncSession = Depends(get_db)):
+    """Resend outreach email for a candidate, regardless of current status."""
+
+    result = await db.execute(select(Candidate).where(Candidate.id == request.candidate_id))
+    candidate = result.scalar_one_or_none()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    result = await db.execute(select(Job).where(Job.id == request.job_id))
+    job = result.scalar_one_or_none()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    # Build or re-use prescreening chatbot URL
+    from shared.db.models import ChatbotSession
+    session_result = await db.execute(
+        select(ChatbotSession).where(
+            ChatbotSession.candidate_id == candidate.id,
+            ChatbotSession.job_id == job.id,
+        ).limit(1)
+    )
+    existing_session = session_result.scalar_one_or_none()
+
+    if existing_session:
+        chatbot_url = f"{SCREENING_BASE_URL}?token={existing_session.token}"
+    else:
+        chatbot_url = f"{SCREENING_BASE_URL}?candidate={candidate.id}&job={job.id}"
+
+    success = send_invitation_email(
+        candidate_email=candidate.email,
+        candidate_name=candidate.name,
+        job_title=job.title,
+        chatbot_url=chatbot_url,
+    )
+
+    # Log the communication
+    from datetime import datetime, timezone
+    comm = Communication(
+        candidate_id=candidate.id,
+        job_id=job.id,
+        communication_type="OUTREACH_RESEND",
+        direction="OUTBOUND",
+        subject=f"[Resend] Opportunity: {job.title} at {COMPANY_NAME}",
+        content=f"Resent outreach email. Chatbot URL: {chatbot_url}",
+        sent_at=datetime.now(timezone.utc),
+    )
+    db.add(comm)
+    await db.commit()
+
+    logger.info(f"Outreach email resent for candidate {candidate.id}")
+
+    return {
+        "success": success,
+        "message": f"Outreach email resent to {candidate.email}",
+        "candidate_id": candidate.id,
+        "job_id": job.id,
+    }
+
+
 @router.get("/jobs")
 async def get_jobs_with_outreach(db: AsyncSession = Depends(get_db)):
     """Get jobs with outreach statistics."""

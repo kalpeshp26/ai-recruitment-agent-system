@@ -142,6 +142,7 @@ async def _parse_with_llamaindex(text: str) -> dict:
     "experience_years": 0,
     "summary": "brief professional summary",
     "skills": ["skill1", "skill2"],
+    "projects": [{"name": "project name", "description": "details and tech stack/tools used"}],
     "education": [{"degree": "degree", "institution": "school", "year": "year"}],
     "work_history": [{"company": "company", "role": "title", "duration": "period"}],
     "certifications": ["cert1"],
@@ -169,6 +170,7 @@ Return only valid JSON, no other text."""
                 # Ensure required fields exist
                 parsed.setdefault("name", "Unknown")
                 parsed.setdefault("skills", [])
+                parsed.setdefault("projects", [])
                 parsed.setdefault("education", [])
                 parsed.setdefault("work_history", [])
                 parsed.setdefault("certifications", [])
@@ -228,6 +230,7 @@ Return JSON with these exact keys:
     "experience_years": 0,
     "summary": "brief summary",
     "skills": ["skill1", "skill2"],
+    "projects": [{{"name": "project name", "description": "details and tech stack/tools used"}}],
     "education": [{{"degree": "degree", "institution": "school", "year": "year"}}],
     "work_history": [{{"company": "company", "role": "title", "duration": "period"}}],
     "certifications": ["cert1"],
@@ -260,6 +263,7 @@ Return ONLY the JSON object, no other text."""
             # Ensure required fields
             parsed.setdefault("name", "Unknown")
             parsed.setdefault("skills", [])
+            parsed.setdefault("projects", [])
             parsed.setdefault("education", [])
             parsed.setdefault("work_history", [])
             parsed.setdefault("certifications", [])
@@ -301,6 +305,7 @@ Return JSON with these exact keys:
     "experience_years": 0,
     "summary": "brief summary",
     "skills": ["skill1", "skill2"],
+    "projects": [{{"name": "project name", "description": "details and tech stack/tools used"}}],
     "education": [{{"degree": "degree", "institution": "school", "year": "year"}}],
     "work_history": [{{"company": "company", "role": "title", "duration": "period"}}],
     "certifications": ["cert1"],
@@ -340,6 +345,7 @@ Return ONLY the JSON object, no other text."""
                     # Ensure required fields
                     parsed.setdefault("name", "Unknown")
                     parsed.setdefault("skills", [])
+                    parsed.setdefault("projects", [])
                     parsed.setdefault("education", [])
                     parsed.setdefault("work_history", [])
                     parsed.setdefault("certifications", [])
@@ -411,6 +417,7 @@ def _parse_with_regex(text: str) -> dict:
         "experience_years": experience_years,
         "summary": text[:300] + "..." if len(text) > 300 else text,
         "skills": found_skills,
+        "projects": [],
         "education": education,
         "work_history": [],
         "certifications": [],
