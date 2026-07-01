@@ -1,0 +1,204 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# AI Recruitment Agent System — .gitignore
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+# ── Secrets & Environment ──────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+# Keep the example file committed
+!.env.example
+
+# PEM / key files
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service_account.json
+
+
+# ── Python ─────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyo
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+MANIFEST
+*.whl
+
+# Type stubs
+*.pyi
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyright / Pylance
+pyrightconfig.json
+
+# Ruff / Black / isort
+.ruff_cache/
+
+
+# ── Virtual Environments ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+.Python
+
+
+# ── Testing & Coverage ─────────────────────────────────────────────────────────
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.coveragerc
+nosetests.xml
+test-results/
+junit*.xml
+
+
+# ── Database & Local Data ─────────────────────────────────────────────────────
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+*.db
+*.sqlite
+*.sqlite3
+# Keep the data directory but not database files
+!data/.gitkeep
+
+
+# ── Uploaded Files & Generated Output ─────────────────────────────────────────
+uploads/
+output/
+!uploads/.gitkeep
+!output/.gitkeep
+
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+logs/
+*.log
+*.log.*
+app_resp.txt
+stt_resp.txt
+tts_resp.txt
+stage2to3_output.txt
+
+
+# ── Node.js ────────────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+
+# ── Frontend Build ─────────────────────────────────────────────────────────────
+frontend/build/
+frontend/dist/
+frontend/.next/
+frontend/.nuxt/
+
+
+# ── IDEs & Editors ─────────────────────────────────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+
+# ── Docker ─────────────────────────────────────────────────────────────────────
+docker-compose.override.yml
+.docker/
+
+
+# ── OS Generated ───────────────────────────────────────────────────────────────
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+
+# ── Jupyter Notebooks ─────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+
+# ── Scratch / Temporary Files ─────────────────────────────────────────────────
+scratch/
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+
+
+# ── Compiled / Binary Artifacts ───────────────────────────────────────────────
+*.pyc
+*.pyd
+*.dll
+*.exe
+*.out
+*.class
+
+
+# ── AWS ────────────────────────────────────────────────────────────────────────
+.aws/
+
+
+# ── Legacy / Internal Worktrees ───────────────────────────────────────────────
+Multi-Round-Assesment (3)/Multi-Round-Assesment.worktrees/
+
+
+# ── Misc ───────────────────────────────────────────────────────────────────────
+pip-log.txt
+pip-delete-this-directory.txt
+index_resp.html
+check_dbs.py
+insert_divesh_data.py
+test_registration.html
+VERIFICATION_SCRIPT.html

@@ -1,0 +1,15 @@
+Job Title: Python Developer
+Location: San Francisco, CA (Hybrid)
+Role: Full-time
+
+Job Description:
+We are looking for a Python Developer to join our core engineering team. You will be responsible for building robust APIs and backend services using FastAPI and SQLAlchemy.
+
+Key Requirements:
+- 3+ years of professional software development experience.
+- Strong proficiency in Python 3.x and backend frameworks like FastAPI.
+- Solid experience with relational databases, database modeling, and SQLAlchemy.
+- Familiarity with version control using Git.
+- Experience with testing, SQLite, and deployment.
+
+If you have a passion for writing clean, efficient code and building scalable systems, we want to hear from you!

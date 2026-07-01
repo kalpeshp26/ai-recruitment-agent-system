@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prescreening Assessment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #F4F3FF;
+            --color-surface: #FFFFFF;
+            --color-border: #E5E7EB;
+            --color-text-primary: #1A1040;
+            --color-text-secondary: #6B7280;
+            --color-accent: #6C63FF;
+            --color-accent-hover: #5B52E8;
+            --color-success: #10B981;
+            --color-success-light: #D1FAE5;
+            --color-error: #EF4444;
+            --color-error-light: #FEE2E2;
+            --gradient-accent: linear-gradient(135deg, #6C63FF 0%, #8B5CF6 100%);
+            --shadow-premium: 0 10px 30px rgba(26, 16, 64, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1rem;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient background grid and glow */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(108, 99, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(108, 99, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .bg-glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.12;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .bg-glow-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--color-accent);
+            top: -100px;
+            right: -100px;
+        }
+
+        .bg-glow-2 {
+            width: 400px;
+            height: 400px;
+            background: var(--color-success);
+            bottom: -100px;
+            left: -100px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            z-index: 1;
+        }
+
+        .card {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-premium);
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-badge {
+            display: inline-block;
+            padding: 0.5rem 1.25rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 30px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--color-accent);
+            margin-bottom: 1.25rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-family: 'Syne', system-ui, -apple-system, sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-primary);
+        }
+
+        .job-title {
+            font-size: 1.1rem;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        .instructions {
+            background: var(--color-bg);
+            border-left: 4px solid var(--color-accent);
+            padding: 1.25rem;
+            border-radius: 0 12px 12px 0;
+            font-size: 0.92rem;
+            line-height: 1.6;
+            color: var(--color-text-secondary);
+            margin-bottom: 2.5rem;
+        }
+
+        .question-card {
+            background: #FFFFFF;
+            border: 1px solid var(--color-border);
+            border-radius: 14px;
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(26, 16, 64, 0.02);
+            transition: all 0.2s ease;
+        }
+
+        .question-card:focus-within {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.08);
+        }
+
+        .question-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .question-number {
+            background: var(--gradient-accent);
+            color: white;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .question-text {
+            font-size: 1.05rem;
+            font-weight: 600;
+            line-height: 1.5;
+            color: var(--color-text-primary);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 110px;
+            padding: 1rem;
+            background: #FAFAFF;
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            color: var(--color-text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            resize: vertical;
+            transition: all 0.2s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            background: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            font-size: 0.82rem;
+            color: var(--color-text-secondary);
+        }
+
+        .char-count.invalid {
+            color: var(--color-error);
+            font-weight: 500;
+        }
+
+        .char-count.valid {
+            color: var(--color-success);
+            font-weight: 600;
+        }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 1.1rem;
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.2);
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 44px;
+            height: 44px;
+            border: 4px solid rgba(108, 99, 255, 0.1);
+            border-top-color: var(--color-accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 1.25rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-view, .error-view, .success-view {
+            text-align: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: var(--color-success);
+            margin-bottom: 1.5rem;
+            background: var(--color-success-light);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            color: var(--color-error);
+            margin-bottom: 1.5rem;
+            background: var(--color-error-light);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-title {
+            font-family: 'Syne', system-ui, sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--color-success);
+            margin-bottom: 0.75rem;
+        }
+
+        .error-title {
+            font-family: 'Syne', system-ui, sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--color-error);
+            margin-bottom: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+
+<div class="container">
+    <div id="portal-card" class="card">
+        <div class="loading-view" id="loading-state">
+            <div class="spinner"></div>
+            <p style="color: var(--color-text-secondary); font-weight: 500;">Verifying session details and loading your assessment...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = '/api';
+    let sessionId = null;
+    let questions = [];
+
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    async function initPortal() {
+        sessionId = getQueryParam('session_id');
+        const portalCard = document.getElementById('portal-card');
+
+        if (!sessionId) {
+            renderError('Session ID Missing', 'This assessment link is invalid or incomplete. Please check your invitation email.');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/prescreening/session/${sessionId}`);
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                renderError('Session Verification Failed', data.detail || 'The prescreening session could not be found or has expired.');
+                return;
+            }
+
+            if (data.status === 'COMPLETED') {
+                renderSuccess('Assessment Already Completed', 'You have already submitted responses for this assessment. No further action is required.');
+                return;
+            }
+
+            if (data.status === 'EXPIRED') {
+                renderError('Assessment Link Expired', 'The deadline for this assessment has passed. Please contact your recruiter if you need assistance.');
+                return;
+            }
+
+            questions = data.questions || [];
+            renderAssessment(data.candidate_name, data.job_title);
+        } catch (err) {
+            console.error('Portal load error:', err);
+            renderError('Connection Error', 'Could not establish connection to recruitment server. Please try again.');
+        }
+    }
+
+    function renderError(title, desc) {
+        document.getElementById('portal-card').innerHTML = `
+            <div class="error-view">
+                <div class="error-icon">⚠️</div>
+                <div class="error-title">${escapeHTML(title)}</div>
+                <p style="color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">${escapeHTML(desc)}</p>
+            </div>
+        `;
+    }
+
+    function renderSuccess(title, desc) {
+        document.getElementById('portal-card').innerHTML = `
+            <div class="success-view">
+                <div class="success-icon">✓</div>
+                <div class="success-title">${escapeHTML(title)}</div>
+                <p style="color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">${escapeHTML(desc)}</p>
+                <div style="font-size: 0.85rem; color: var(--color-text-secondary); margin-top: 2rem; border-top: 1px solid var(--color-border); padding-top: 1.5rem;">
+                    You can close this browser window.
+                </div>
+            </div>
+        `;
+    }
+
+    function renderAssessment(candidateName, jobTitle) {
+        const portalCard = document.getElementById('portal-card');
+        
+        const questionsHtml = questions.map((q, idx) => `
+            <div class="question-card">
+                <div class="question-header">
+                    <span class="question-number">${idx + 1}</span>
+                    <span class="question-text">${escapeHTML(q.question)}</span>
+                </div>
+                <textarea 
+                    id="answer-${q.id}" 
+                    placeholder="Type your response here..."
+                    oninput="validateAnswer(${q.id}, ${q.minChars})"
+                ></textarea>
+                <div class="card-footer">
+                    <span id="char-count-${q.id}" class="char-count invalid">0 / ${q.minChars} characters</span>
+                    <span id="validation-msg-${q.id}" style="font-weight: 500;"></span>
+                </div>
+            </div>
+        `).join('');
+
+        portalCard.innerHTML = `
+            <div class="header">
+                <span class="logo-badge">Prescreening Assessment</span>
+                <h1>Welcome, ${escapeHTML(candidateName.split(' ')[0])}</h1>
+                <div class="job-title">${escapeHTML(jobTitle)} Position</div>
+            </div>
+            
+            <div class="instructions">
+                Please answer the following ${questions.length} questions thoughtfully. Our AI will evaluate your technical context and experience match. <strong>Minimum response length is 20 characters per question.</strong>
+            </div>
+
+            <form id="assessment-form" onsubmit="submitAssessment(event)">
+                ${questionsHtml}
+                <button type="submit" id="btn-submit-assessment" class="btn-submit" disabled>
+                    Submit Assessment Responses
+                </button>
+            </form>
+        `;
+    }
+
+    window.validateAnswer = function(questionId, minChars) {
+        const textarea = document.getElementById(`answer-${questionId}`);
+        const text = textarea ? textarea.value.trim() : '';
+        const countSpan = document.getElementById(`char-count-${questionId}`);
+        const msgSpan = document.getElementById(`validation-msg-${questionId}`);
+
+        if (countSpan) {
+            countSpan.textContent = `${text.length} / ${minChars} characters`;
+            if (text.length >= minChars) {
+                countSpan.className = 'char-count valid';
+                if (msgSpan) {
+                    msgSpan.textContent = '✓ Ready';
+                    msgSpan.style.color = 'var(--color-success)';
+                }
+            } else {
+                countSpan.className = 'char-count invalid';
+                if (msgSpan) {
+                    msgSpan.textContent = 'Needs more detail';
+                    msgSpan.style.color = 'var(--color-error)';
+                }
+            }
+        }
+
+        let allValid = true;
+        questions.forEach(q => {
+            const txtarea = document.getElementById(`answer-${q.id}`);
+            const val = txtarea ? txtarea.value.trim() : '';
+            if (val.length < q.minChars) {
+                allValid = false;
+            }
+        });
+
+        const submitBtn = document.getElementById('btn-submit-assessment');
+        if (submitBtn) {
+            submitBtn.disabled = !allValid;
+        }
+    }
+
+    window.submitAssessment = async function(event) {
+        event.preventDefault();
+        
+        const submitBtn = document.getElementById('btn-submit-assessment');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting your responses...';
+        }
+
+        const payloadAnswers = questions.map(q => {
+            const txtarea = document.getElementById(`answer-${q.id}`);
+            return {
+                question_index: q.id - 1,
+                question: q.question,
+                answer: txtarea ? txtarea.value.trim() : ''
+            };
+        });
+
+        try {
+            const res = await fetch(`${API_BASE}/prescreening/submit-answers`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    answers: payloadAnswers
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                renderSuccess('Assessment Submitted Successfully', 'Thank you! Your responses have been recorded and sent to our AI screening engine for scoring. The recruiter will be notified.');
+            } else {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Assessment Responses';
+                }
+                alert(data.detail || 'Failed to submit responses. Please check answers and try again.');
+            }
+        } catch (err) {
+            console.error('Submission error:', err);
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Assessment Responses';
+            }
+            alert('A connection error occurred. Please check your internet connection and try again.');
+        }
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, 
+            tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag)
+        );
+    }
+
+    window.onload = initPortal;
+</script>
+
+</body>
+</html>
